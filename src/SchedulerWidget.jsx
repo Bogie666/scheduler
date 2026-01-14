@@ -126,7 +126,12 @@ export default function SchedulerWidget({ onClose, apiEndpoint, baseUrl = '' }) 
         {/* Header */}
         <div className="lex-scheduler-header">
           <div className="lex-header-content">
-            <img src={`${baseUrl}/Lex-logo.png`} alt="LEX Air Conditioning" className="lex-header-logo" />
+            <img
+              src={`${baseUrl}/Lex-logo.png`}
+              alt="LEX Air Conditioning"
+              className="lex-header-logo"
+              style={{ height: '62px', width: 'auto', maxWidth: '200px', display: 'block' }}
+            />
           </div>
           {onClose && (
             <button className="lex-close-btn" onClick={onClose} aria-label="Close">
