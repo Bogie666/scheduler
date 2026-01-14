@@ -18,7 +18,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -136,8 +136,12 @@ async function createServiceTitanBooking(accessToken, bookingData) {
   // Build the issue summary
   const issueSummary = formatIssueSummary(bookingData);
 
+  // Generate unique external ID for this booking
+  const externalId = `LEX-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
   // ServiceTitan booking payload
   const payload = {
+    externalId,
     source: 'Website',
     name: `${bookingData.firstName} ${bookingData.lastName}`,
     summary: issueSummary,
@@ -151,6 +155,7 @@ async function createServiceTitanBooking(accessToken, bookingData) {
     address: {
       street: bookingData.address,
       city: bookingData.city,
+      state: bookingData.state || 'TX',
       zip: bookingData.zip,
       country: 'USA',
     },
@@ -171,7 +176,7 @@ async function createServiceTitanBooking(accessToken, bookingData) {
     headers: {
       'Authorization': `Bearer ${accessToken}`,
       'Content-Type': 'application/json',
-      'ST-App-Key': process.env.SERVICETITAN_APP_KEY || 'rlaxwjh55wy6t',
+      'ST-App-Key': process.env.SERVICETITAN_APP_KEY,
     },
     body: JSON.stringify(payload),
   });
