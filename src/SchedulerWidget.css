@@ -1,13 +1,38 @@
 /* LEX Scheduler Widget Styles */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
-/* CSS Isolation - Reset all inherited styles from host site */
+/* CSS Isolation - Reset inherited styles from host site */
 .lex-scheduler-overlay,
 .lex-scheduler-overlay *,
 .lex-scheduler-overlay *::before,
 .lex-scheduler-overlay *::after {
-  all: revert;
-  box-sizing: border-box;
+  box-sizing: border-box !important;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  line-height: 1.5 !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* Reset buttons to prevent theme inheritance */
+.lex-scheduler-overlay button {
+  all: unset !important;
+  box-sizing: border-box !important;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  cursor: pointer !important;
+}
+
+/* Reset inputs to prevent theme inheritance */
+.lex-scheduler-overlay input,
+.lex-scheduler-overlay textarea {
+  all: unset !important;
+  box-sizing: border-box !important;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+
+/* Reset images */
+.lex-scheduler-overlay img {
+  all: unset !important;
+  display: block !important;
 }
 
 .lex-scheduler-overlay {
@@ -60,22 +85,6 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Ensure links and buttons inherit proper styles after reset */
-.lex-scheduler-modal a {
-  color: #133865;
-  text-decoration: none;
-}
-
-.lex-scheduler-modal button {
-  font-family: inherit;
-  cursor: pointer;
-}
-
-.lex-scheduler-modal img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-}
 
 /* Header */
 .lex-scheduler-header {
@@ -93,25 +102,26 @@
 }
 
 .lex-header-logo {
-  height: 62px;
-  width: auto;
+  height: 62px !important;
+  width: auto !important;
+  max-width: 200px !important;
 }
 
 .lex-close-btn {
-  background: rgba(255, 255, 255, 0.15);
-  border: none;
-  color: white;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  font-size: 24px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
-  flex-shrink: 0;
-  line-height: 1;
+  background: rgba(255, 255, 255, 0.15) !important;
+  border: none !important;
+  color: white !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  font-size: 24px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.15s ease !important;
+  flex-shrink: 0 !important;
+  line-height: 1 !important;
 }
 
 .lex-close-btn:hover {
@@ -213,16 +223,17 @@
 }
 
 .lex-service-card {
-  background: #ffffff;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 20px 12px;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  transition: all 0.2s ease;
+  background: #ffffff !important;
+  border: 2px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  padding: 20px 12px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 10px !important;
+  transition: all 0.2s ease !important;
+  color: #334155 !important;
 }
 
 .lex-service-card:hover {
@@ -267,16 +278,16 @@
 }
 
 .lex-issue-btn {
-  background: #ffffff;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 12px 16px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  color: #475569;
-  text-align: left;
-  transition: all 0.15s ease;
+  background: #ffffff !important;
+  border: 1.5px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  padding: 12px 16px !important;
+  cursor: pointer !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #475569 !important;
+  text-align: left !important;
+  transition: all 0.15s ease !important;
 }
 
 .lex-issue-btn:hover {
@@ -305,15 +316,16 @@
 
 .lex-form-group input,
 .lex-form-group textarea {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 15px;
-  font-family: inherit;
-  color: #0f172a;
-  transition: all 0.15s ease;
-  box-sizing: border-box;
+  width: 100% !important;
+  padding: 12px 16px !important;
+  border: 1.5px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  font-size: 15px !important;
+  font-family: inherit !important;
+  color: #0f172a !important;
+  background: #ffffff !important;
+  transition: all 0.15s ease !important;
+  box-sizing: border-box !important;
 }
 
 .lex-form-group input:focus,
@@ -352,16 +364,16 @@
 
 .lex-date-btn,
 .lex-time-btn {
-  background: #ffffff;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 10px 8px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-  color: #475569;
-  text-align: center;
-  transition: all 0.15s ease;
+  background: #ffffff !important;
+  border: 1.5px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  padding: 10px 8px !important;
+  cursor: pointer !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: #475569 !important;
+  text-align: center !important;
+  transition: all 0.15s ease !important;
 }
 
 .lex-date-btn:hover,
@@ -372,9 +384,9 @@
 
 .lex-date-btn.selected,
 .lex-time-btn.selected {
-  border-color: #133865;
-  background: #133865;
-  color: white;
+  border-color: #133865 !important;
+  background: #133865 !important;
+  color: white !important;
 }
 
 .lex-time-grid {
@@ -411,21 +423,23 @@
 
 .lex-btn-primary,
 .lex-btn-secondary {
-  padding: 14px 28px;
-  border-radius: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
+  padding: 14px 28px !important;
+  border-radius: 8px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  font-family: inherit !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
 }
 
 .lex-btn-primary {
-  flex: 1;
-  background: linear-gradient(135deg, #133865 0%, #0e2a4a 100%);
-  color: white;
-  border: none;
-  box-shadow: 0 2px 8px rgba(10, 92, 140, 0.25);
+  flex: 1 !important;
+  background: linear-gradient(135deg, #133865 0%, #0e2a4a 100%) !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(10, 92, 140, 0.25) !important;
 }
 
 .lex-btn-primary:hover:not(:disabled) {
@@ -440,9 +454,9 @@
 }
 
 .lex-btn-secondary {
-  background: white;
-  color: #475569;
-  border: 1.5px solid #e2e8f0;
+  background: white !important;
+  color: #475569 !important;
+  border: 1.5px solid #e2e8f0 !important;
 }
 
 .lex-btn-secondary:hover {
