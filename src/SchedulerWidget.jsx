@@ -81,7 +81,7 @@ export default function SchedulerWidget({ onClose, apiEndpoint }) {
     setSubmitError(null);
     
     try {
-      const response = await fetch(apiEndpoint || '/api/book', {
+      const response = await fetch(apiEndpoint || '/api/lex-booking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
