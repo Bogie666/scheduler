@@ -48,7 +48,7 @@ const timeSlots = [
   { id: 'first-available', label: 'First Available', time: 'ASAP' },
 ];
 
-export default function SchedulerWidget({ onClose, apiEndpoint }) {
+export default function SchedulerWidget({ onClose, apiEndpoint, baseUrl = '' }) {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
@@ -126,7 +126,7 @@ export default function SchedulerWidget({ onClose, apiEndpoint }) {
         {/* Header */}
         <div className="lex-scheduler-header">
           <div className="lex-header-content">
-            <img src="/Lex-logo.png" alt="LEX Air Conditioning" className="lex-header-logo" />
+            <img src={`${baseUrl}/Lex-logo.png`} alt="LEX Air Conditioning" className="lex-header-logo" />
           </div>
           {onClose && (
             <button className="lex-close-btn" onClick={onClose} aria-label="Close">

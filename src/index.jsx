@@ -11,6 +11,7 @@ function initLEXScheduler(config = {}) {
     buttonText = 'Book Online',
     apiEndpoint = '/api/lex-booking',
     position = 'bottom-right',   // bottom-right, bottom-left
+    baseUrl = 'https://scheduler-mu-three.vercel.app', // CDN base URL for assets
   } = config;
 
   let container = null;
@@ -30,9 +31,10 @@ function initLEXScheduler(config = {}) {
     if (!container) createContainer();
     isOpen = true;
     root.render(
-      <SchedulerWidget 
+      <SchedulerWidget
         onClose={closeScheduler}
         apiEndpoint={apiEndpoint}
+        baseUrl={baseUrl}
       />
     );
     document.body.style.overflow = 'hidden';

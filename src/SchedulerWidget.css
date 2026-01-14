@@ -1,6 +1,15 @@
 /* LEX Scheduler Widget Styles */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
+/* CSS Isolation - Reset all inherited styles from host site */
+.lex-scheduler-overlay,
+.lex-scheduler-overlay *,
+.lex-scheduler-overlay *::before,
+.lex-scheduler-overlay *::after {
+  all: revert;
+  box-sizing: border-box;
+}
+
 .lex-scheduler-overlay {
   position: fixed;
   inset: 0;
@@ -39,11 +48,33 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 
+  box-shadow:
     0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 20px 50px -12px rgba(0, 0, 0, 0.25);
   animation: lexSlideUp 0.3s ease-out;
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #0f172a;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ensure links and buttons inherit proper styles after reset */
+.lex-scheduler-modal a {
+  color: #133865;
+  text-decoration: none;
+}
+
+.lex-scheduler-modal button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.lex-scheduler-modal img {
+  max-width: 100%;
+  height: auto;
+  display: block;
 }
 
 /* Header */
