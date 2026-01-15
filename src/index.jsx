@@ -34,6 +34,8 @@ function initLEXScheduler(config = {}) {
     logoUrl = null,              // Custom logo URL (defaults to LEX logo)
     headerColor = '#133865',     // Header background color
     buttonColor = '#0A5C8C',     // Floating button color
+    buttonOffsetX = 24,          // Horizontal offset from edge (px)
+    buttonOffsetY = 24,          // Vertical offset from edge (px)
     tagline = 'The Gold Standard of White Glove Service',  // Footer tagline
     phoneNumber = '(972) 466-1917',  // Support phone number
   } = config;
@@ -104,14 +106,14 @@ function initLEXScheduler(config = {}) {
     const getPositionStyles = () => {
       switch (position) {
         case 'bottom-left':
-          return 'bottom: 24px; left: 24px;';
+          return `bottom: ${buttonOffsetY}px; left: ${buttonOffsetX}px;`;
         case 'middle-right':
-          return 'top: 50%; right: 24px; transform: translateY(-50%);';
+          return `top: 50%; right: ${buttonOffsetX}px; transform: translateY(-50%);`;
         case 'middle-left':
-          return 'top: 50%; left: 24px; transform: translateY(-50%);';
+          return `top: 50%; left: ${buttonOffsetX}px; transform: translateY(-50%);`;
         case 'bottom-right':
         default:
-          return 'bottom: 24px; right: 24px;';
+          return `bottom: ${buttonOffsetY}px; right: ${buttonOffsetX}px;`;
       }
     };
 
