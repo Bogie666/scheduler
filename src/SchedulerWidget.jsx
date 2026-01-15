@@ -380,6 +380,10 @@ export default function SchedulerWidget({ onClose, apiEndpoint, baseUrl = '', lo
                 </div>
               )}
 
+              <p className="lex-availability-note">
+                We'll do our best to accommodate your preferred time, but availability may vary.
+              </p>
+
               <div className="lex-step-actions">
                 <button className="lex-btn-secondary" onClick={prevStep}>Back</button>
                 <button 

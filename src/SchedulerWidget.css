@@ -471,6 +471,15 @@
   margin-top: 16px;
 }
 
+/* Availability Note */
+.lex-availability-note {
+  font-size: 13px;
+  color: #64748b;
+  text-align: center;
+  margin: 20px 0 0;
+  font-style: italic;
+}
+
 /* Confirmation */
 .lex-confirmation {
   text-align: center;
