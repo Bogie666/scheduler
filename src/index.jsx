@@ -100,18 +100,27 @@ function initLEXScheduler(config = {}) {
       <span>${buttonText}</span>
     `;
     
-    // Position styles
-    const positionStyles = position === 'bottom-left' 
-      ? 'left: 24px;' 
-      : 'right: 24px;';
+    // Position styles based on position config
+    const getPositionStyles = () => {
+      switch (position) {
+        case 'bottom-left':
+          return 'bottom: 24px; left: 24px;';
+        case 'middle-right':
+          return 'top: 50%; right: 24px; transform: translateY(-50%);';
+        case 'middle-left':
+          return 'top: 50%; left: 24px; transform: translateY(-50%);';
+        case 'bottom-right':
+        default:
+          return 'bottom: 24px; right: 24px;';
+      }
+    };
 
     // Create darker shade for gradient
     const darkerColor = adjustColor(buttonColor, -20);
 
     button.setAttribute('style', `
       position: fixed;
-      bottom: 24px;
-      ${positionStyles}
+      ${getPositionStyles()}
       z-index: 999998;
       display: flex;
       align-items: center;
@@ -129,13 +138,15 @@ function initLEXScheduler(config = {}) {
       transition: all 0.2s ease;
     `);
 
+    const isMiddle = position === 'middle-right' || position === 'middle-left';
+
     button.addEventListener('mouseenter', () => {
-      button.style.transform = 'translateY(-2px)';
+      button.style.transform = isMiddle ? 'translateY(calc(-50% - 2px))' : 'translateY(-2px)';
       button.style.boxShadow = `0 6px 28px ${hexToRgba(buttonColor, 0.5)}`;
     });
 
     button.addEventListener('mouseleave', () => {
-      button.style.transform = 'translateY(0)';
+      button.style.transform = isMiddle ? 'translateY(-50%)' : 'translateY(0)';
       button.style.boxShadow = `0 4px 20px ${hexToRgba(buttonColor, 0.4)}`;
     });
 
