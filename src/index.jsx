@@ -3,6 +3,24 @@ import { createRoot } from 'react-dom/client';
 import SchedulerWidget from './SchedulerWidget';
 import './SchedulerWidget.css';
 
+// Helper function to convert hex to rgba
+function hexToRgba(hex, alpha) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+// Helper function to adjust color brightness
+function adjustColor(hex, percent) {
+  const num = parseInt(hex.slice(1), 16);
+  const amt = Math.round(2.55 * percent);
+  const R = Math.max(0, Math.min(255, (num >> 16) + amt));
+  const G = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amt));
+  const B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
+  return `#${(0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)}`;
+}
+
 // Widget initialization function
 function initLEXScheduler(config = {}) {
   const {
@@ -12,6 +30,12 @@ function initLEXScheduler(config = {}) {
     apiEndpoint = '/api/lex-booking',
     position = 'bottom-right',   // bottom-right, bottom-left
     baseUrl = 'https://scheduler-mu-three.vercel.app', // CDN base URL for assets
+    // Customization options
+    logoUrl = null,              // Custom logo URL (defaults to LEX logo)
+    headerColor = '#133865',     // Header background color
+    buttonColor = '#0A5C8C',     // Floating button color
+    tagline = 'The Gold Standard of White Glove Service',  // Footer tagline
+    phoneNumber = '(972) 466-1917',  // Support phone number
   } = config;
 
   let container = null;
@@ -35,6 +59,10 @@ function initLEXScheduler(config = {}) {
         onClose={closeScheduler}
         apiEndpoint={apiEndpoint}
         baseUrl={baseUrl}
+        logoUrl={logoUrl}
+        headerColor={headerColor}
+        tagline={tagline}
+        phoneNumber={phoneNumber}
       />
     );
     document.body.style.overflow = 'hidden';
@@ -77,6 +105,9 @@ function initLEXScheduler(config = {}) {
       ? 'left: 24px;' 
       : 'right: 24px;';
 
+    // Create darker shade for gradient
+    const darkerColor = adjustColor(buttonColor, -20);
+
     button.setAttribute('style', `
       position: fixed;
       bottom: 24px;
@@ -86,7 +117,7 @@ function initLEXScheduler(config = {}) {
       align-items: center;
       gap: 10px;
       padding: 14px 24px;
-      background: linear-gradient(135deg, #0A5C8C 0%, #0B3D5C 100%);
+      background: linear-gradient(135deg, ${buttonColor} 0%, ${darkerColor} 100%);
       color: white;
       border: none;
       border-radius: 50px;
@@ -94,18 +125,18 @@ function initLEXScheduler(config = {}) {
       font-size: 15px;
       font-weight: 600;
       cursor: pointer;
-      box-shadow: 0 4px 20px rgba(10, 92, 140, 0.4);
+      box-shadow: 0 4px 20px ${hexToRgba(buttonColor, 0.4)};
       transition: all 0.2s ease;
     `);
 
     button.addEventListener('mouseenter', () => {
       button.style.transform = 'translateY(-2px)';
-      button.style.boxShadow = '0 6px 28px rgba(10, 92, 140, 0.5)';
+      button.style.boxShadow = `0 6px 28px ${hexToRgba(buttonColor, 0.5)}`;
     });
 
     button.addEventListener('mouseleave', () => {
       button.style.transform = 'translateY(0)';
-      button.style.boxShadow = '0 4px 20px rgba(10, 92, 140, 0.4)';
+      button.style.boxShadow = `0 4px 20px ${hexToRgba(buttonColor, 0.4)}`;
     });
 
     button.addEventListener('click', openScheduler);

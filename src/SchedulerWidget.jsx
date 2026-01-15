@@ -48,7 +48,7 @@ const timeSlots = [
   { id: 'first-available', label: 'First Available', time: 'ASAP' },
 ];
 
-export default function SchedulerWidget({ onClose, apiEndpoint, baseUrl = '' }) {
+export default function SchedulerWidget({ onClose, apiEndpoint, baseUrl = '', logoUrl = null, headerColor = '#133865', tagline = 'The Gold Standard of White Glove Service', phoneNumber = '(972) 466-1917' }) {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
@@ -124,11 +124,11 @@ export default function SchedulerWidget({ onClose, apiEndpoint, baseUrl = '' }) 
     <div className="lex-scheduler-overlay">
       <div className="lex-scheduler-modal">
         {/* Header */}
-        <div className="lex-scheduler-header">
+        <div className="lex-scheduler-header" style={{ backgroundColor: headerColor }}>
           <div className="lex-header-content">
             <img
-              src={`${baseUrl}/Lex-logo.png`}
-              alt="LEX Air Conditioning"
+              src={logoUrl || `${baseUrl}/Lex-logo.png`}
+              alt="Company Logo"
               className="lex-header-logo"
               style={{ height: '62px', width: 'auto', maxWidth: '200px', display: 'block' }}
             />
@@ -423,7 +423,7 @@ export default function SchedulerWidget({ onClose, apiEndpoint, baseUrl = '' }) 
                 </div>
               </div>
               <div className="lex-emergency-note">
-                <strong>Emergency?</strong> Call us now at <a href="tel:9724661917">(972) 466-1917</a>
+                <strong>Emergency?</strong> Call us now at <a href={`tel:${phoneNumber.replace(/\D/g, '')}`}>{phoneNumber}</a>
               </div>
               {onClose && (
                 <button className="lex-btn-primary" onClick={onClose}>
@@ -436,8 +436,8 @@ export default function SchedulerWidget({ onClose, apiEndpoint, baseUrl = '' }) 
 
         {/* Footer */}
         <div className="lex-scheduler-footer">
-          <p>The Gold Standard of White Glove Service</p>
-          <p>Need immediate help? <a href="tel:9724661917">(972) 466-1917</a></p>
+          <p>{tagline}</p>
+          <p>Need immediate help? <a href={`tel:${phoneNumber.replace(/\D/g, '')}`}>{phoneNumber}</a></p>
         </div>
       </div>
     </div>

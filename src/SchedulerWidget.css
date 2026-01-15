@@ -228,9 +228,16 @@
 }
 
 .lex-service-card.selected {
-  border-color: var(--service-color, #133865);
-  background: color-mix(in srgb, var(--service-color, #133865) 8%, white);
-  box-shadow: 0 2px 12px rgba(10, 92, 140, 0.15);
+  border-color: var(--service-color, #133865) !important;
+  border-width: 2.5px !important;
+  background: color-mix(in srgb, var(--service-color, #133865) 12%, white) !important;
+  box-shadow: 0 4px 16px rgba(10, 92, 140, 0.25) !important;
+  transform: translateY(-2px);
+}
+
+.lex-service-card.selected .lex-service-name {
+  color: var(--service-color, #133865) !important;
+  font-weight: 700 !important;
 }
 
 .lex-service-icon {
@@ -282,9 +289,12 @@
 }
 
 .lex-issue-btn.selected {
-  border-color: var(--service-color, #133865);
-  background: color-mix(in srgb, var(--service-color, #133865) 8%, white);
-  color: #0f172a;
+  border-color: var(--service-color, #133865) !important;
+  border-width: 2px !important;
+  background: color-mix(in srgb, var(--service-color, #133865) 15%, white) !important;
+  color: var(--service-color, #133865) !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 8px rgba(10, 92, 140, 0.2) !important;
 }
 
 /* Form Elements */

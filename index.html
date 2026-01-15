@@ -141,19 +141,36 @@
       <code>{
   // URL to backend API that handles ServiceTitan integration
   apiEndpoint: '/api/lex-booking',
-  
+
   // Show floating button automatically
   autoButton: true,
-  
+
   // Text for the floating button
   buttonText: 'Book Online',
-  
+
   // Button position: 'bottom-right' or 'bottom-left'
   position: 'bottom-right',
-  
+
   // CSS selector for existing buttons to trigger the scheduler
   // (use this if you have your own "Book Now" buttons)
-  buttonSelector: '.book-online-btn'
+  buttonSelector: '.book-online-btn',
+
+  // ----- Customization Options -----
+
+  // Custom logo URL (defaults to LEX logo if not set)
+  logoUrl: 'https://example.com/your-logo.png',
+
+  // Header background color (default: '#133865')
+  headerColor: '#133865',
+
+  // Floating button color (default: '#0A5C8C')
+  buttonColor: '#0A5C8C',
+
+  // Footer tagline text
+  tagline: 'The Gold Standard of White Glove Service',
+
+  // Support phone number (shown in footer and confirmation)
+  phoneNumber: '(972) 466-1917'
 }</code>
     </div>
 
