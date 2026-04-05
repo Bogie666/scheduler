@@ -48,7 +48,7 @@ const timeSlots = [
   { id: 'first-available', label: 'First Available',  time: 'ASAP'       },
 ];
 
-export default function App() {
+export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, logoUrl, headerColor, tagline, phoneNumber }) {
   const [isOpen,        setIsOpen]        = useState(true);
   const [step,          setStep]          = useState(1);
   const [isSubmitting,  setIsSubmitting]  = useState(false);
@@ -101,7 +101,7 @@ export default function App() {
     setSubmitError('');
 
     try {
-      const apiEndpoint = window.LEXSchedulerConfig?.apiEndpoint || '/api/booking';
+      const apiEndpoint = apiEndpointProp || window.LEXSchedulerConfig?.apiEndpoint || '/api/lex-booking';
 
       const payload = {
         serviceType:   formData.serviceType,
@@ -169,25 +169,12 @@ export default function App() {
     });
   };
 
-  if (!isOpen) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-        <button
-          onClick={() => setIsOpen(true)}
-          className="flex items-center gap-3 px-6 py-4 rounded-full text-white font-semibold text-lg shadow-xl hover:scale-105 transition-transform"
-          style={{ background: 'linear-gradient(135deg, #0A5C8C 0%, #0B3D5C 100%)' }}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-            <line x1="16" y1="2" x2="16" y2="6"/>
-            <line x1="8" y1="2" x2="8" y2="6"/>
-            <line x1="3" y1="10" x2="21" y2="10"/>
-          </svg>
-          Book Online
-        </button>
-      </div>
-    );
-  }
+  const handleClose = () => {
+    setIsOpen(false);
+    if (onClose) onClose();
+  };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -207,7 +194,7 @@ export default function App() {
               <h2 className="text-2xl font-bold tracking-tight">Schedule Service</h2>
               <p className="text-sm opacity-85 mt-1 font-medium">LEX Air Conditioning • Plumbing • Electrical</p>
             </div>
-            <button onClick={() => setIsOpen(false)} className="w-9 h-9 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-2xl transition-colors">×</button>
+            <button onClick={handleClose} className="w-9 h-9 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-2xl transition-colors">×</button>
           </div>
         </div>
 
