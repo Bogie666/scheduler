@@ -55,8 +55,7 @@ export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, lo
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError,   setSubmitError]   = useState('');
 
-  // ── Referral code state ──────────────────────────────────────
-  // referralCodeSource: 'url' | 'manual' | null
+  // ── Referral code state ──────────���───────────────────────────
   const [referralCodeSource, setReferralCodeSource] = useState(null);
 
   const [formData, setFormData] = useState({
@@ -72,14 +71,13 @@ export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, lo
     zip:          '',
     preferredDate: '',
     preferredTime: '',
-    referralCode:  '',   // ← new field
+    referralCode:  '',
   });
 
   // ── Read referral code from URL on mount ─────────────────────
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
-      // Support both ?r=CODE and ?code=CODE and ?referral=CODE
       const codeFromUrl = params.get('r') || params.get('code') || params.get('referral');
       if (codeFromUrl) {
         const cleaned = codeFromUrl.trim().toUpperCase();
@@ -95,7 +93,7 @@ export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, lo
   const nextStep    = () => setStep(s => s + 1);
   const prevStep    = () => setStep(s => s - 1);
 
-  // ── Submit booking ────────────────────────────────────────────
+  // ── Submit booking ──────────��─────────────────────────────────
   const handleSubmit = async () => {
     setIsSubmitting(true);
     setSubmitError('');
@@ -157,18 +155,6 @@ export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, lo
   const formatDate = (date) =>
     date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
-  const resetForm = () => {
-    setStep(1);
-    setSubmitSuccess(false);
-    setSubmitError('');
-    setReferralCodeSource(null);
-    setFormData({
-      serviceType: '', issue: '', issueDetails: '', firstName: '', lastName: '',
-      phone: '', email: '', address: '', city: '', zip: '',
-      preferredDate: '', preferredTime: '', referralCode: '',
-    });
-  };
-
   const handleClose = () => {
     setIsOpen(false);
     if (onClose) onClose();
@@ -176,71 +162,70 @@ export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, lo
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-        .lex-widget { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .lex-widget input:focus, .lex-widget textarea:focus { outline: none; box-shadow: 0 0 0 3px rgba(10, 92, 140, 0.1); }
-      `}</style>
+  const hdrColor = headerColor || '#133865';
+  const phone = phoneNumber || '(972) 466-1917';
+  const tag = tagline || 'The Gold Standard of White Glove Service';
 
-      <div className="lex-widget bg-white rounded-2xl w-full max-w-xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+  return (
+    <div className="lex-scheduler-overlay">
+      <div className="lex-scheduler-modal">
 
         {/* Header */}
-        <div className="relative overflow-hidden text-white px-7 py-6" style={{ background: 'linear-gradient(135deg, #0B3D5C 0%, #0A5C8C 100%)' }}>
-          <div className="absolute -top-1/2 -right-1/4 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
-          <div className="relative flex justify-between items-start">
-            <div>
-              <h2 className="text-2xl font-bold tracking-tight">Schedule Service</h2>
-              <p className="text-sm opacity-85 mt-1 font-medium">LEX Air Conditioning • Plumbing • Electrical</p>
-            </div>
-            <button onClick={handleClose} className="w-9 h-9 rounded-full bg-white/15 hover:bg-white/25 flex items-center justify-center text-2xl transition-colors">×</button>
+        <div className="lex-scheduler-header" style={{ background: hdrColor }}>
+          <div className="lex-header-content">
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo" className="lex-header-logo" />
+            ) : (
+              <div>
+                <div style={{ color: 'white', fontSize: '20px', fontWeight: 700 }}>Schedule Service</div>
+                <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: '13px', marginTop: '2px' }}>LEX Air Conditioning &bull; Plumbing &bull; Electrical</div>
+              </div>
+            )}
           </div>
+          <button className="lex-close-btn" onClick={handleClose}>&times;</button>
         </div>
 
         {/* Progress */}
-        <div className="flex px-7 py-5 gap-2 bg-slate-50 border-b border-slate-200">
+        <div className="lex-progress-bar">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-2">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${step >= i ? (step > i ? 'bg-emerald-500 text-white' : 'bg-sky-700 text-white shadow-md') : 'bg-slate-200 text-slate-400'}`}>
-                {step > i ? '✓' : i}
-              </div>
-              <span className={`text-xs font-medium uppercase tracking-wide ${step >= i ? 'text-slate-600' : 'text-slate-400'}`}>
-                {['Service', 'Details', 'Contact', 'Schedule'][i-1]}
-              </span>
+            <div key={i} className={`lex-progress-step ${step > i ? 'complete' : step === i ? 'active' : ''}`}>
+              <div className="lex-step-number">{step > i ? '✓' : i}</div>
+              <span className="lex-step-label">{['Service', 'Details', 'Contact', 'Schedule'][i-1]}</span>
             </div>
           ))}
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-7">
+        <div className="lex-scheduler-content">
 
           {/* Step 1 — Service selection */}
           {step === 1 && (
-            <div>
-              <h3 className="text-xl font-bold text-slate-900 mb-6">What do you need help with?</h3>
-              <div className="grid grid-cols-3 gap-3 mb-6">
+            <div className="lex-step-content">
+              <h3>What do you need help with?</h3>
+              <div className="lex-service-grid">
                 {Object.entries(services).map(([key, service]) => (
                   <button
                     key={key}
                     onClick={() => { updateField('serviceType', key); updateField('issue', ''); }}
-                    className={`p-5 rounded-xl border-2 flex flex-col items-center gap-2 transition-all hover:border-sky-600 ${formData.serviceType === key ? 'border-sky-600 bg-sky-50 shadow-md' : 'border-slate-200 bg-white'}`}
+                    className={`lex-service-card ${formData.serviceType === key ? 'selected' : ''}`}
+                    style={{ '--service-color': service.color }}
                   >
-                    <span className="text-3xl">{service.icon}</span>
-                    <span className="text-sm font-semibold text-slate-700">{service.name}</span>
+                    <span className="lex-service-icon">{service.icon}</span>
+                    <span className="lex-service-name">{service.name}</span>
                   </button>
                 ))}
               </div>
 
               {selectedService && (
-                <div>
-                  <h4 className="text-base font-semibold text-slate-700 mb-3">What's the issue?</h4>
-                  <div className="grid grid-cols-2 gap-2">
+                <div className="lex-issue-selection">
+                  <h4>What's the issue?</h4>
+                  <div className="lex-issue-grid">
                     {selectedService.issues.map(issue => (
                       <button
                         key={issue.id}
                         onClick={() => updateField('issue', issue.id)}
-                        className={`px-4 py-3 rounded-lg border-2 text-sm font-medium text-left transition-all hover:border-sky-600 ${formData.issue === issue.id ? 'border-sky-600 bg-sky-50' : 'border-slate-200 text-slate-600'}`}
+                        className={`lex-issue-btn ${formData.issue === issue.id ? 'selected' : ''}`}
+                        style={{ '--service-color': selectedService.color }}
                       >
                         {issue.label}
                       </button>
@@ -251,99 +236,96 @@ export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, lo
 
               {/* Referral code banner — shown if code came from URL */}
               {referralCodeSource === 'url' && formData.referralCode && (
-                <div className="mt-5 flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
-                  <span className="text-emerald-600 text-lg">🎁</span>
+                <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '12px', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px', padding: '12px 16px' }}>
+                  <span style={{ fontSize: '18px' }}>🎁</span>
                   <div>
-                    <p className="text-sm font-semibold text-emerald-800">Referral code applied: {formData.referralCode}</p>
-                    <p className="text-xs text-emerald-600 mt-0.5">You'll save ${window.LEXSchedulerConfig?.discount || '50'} on your first service!</p>
+                    <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: '#065f46' }}>Referral code applied: {formData.referralCode}</p>
+                    <p style={{ margin: '2px 0 0', fontSize: '12px', color: '#059669' }}>You'll save ${window.LEXSchedulerConfig?.discount || '50'} on your first service!</p>
                   </div>
                 </div>
               )}
 
-              <div className="mt-7 pt-6 border-t border-slate-200">
-                <button onClick={nextStep} disabled={!formData.issue} className="w-full py-4 rounded-lg text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-lg" style={{ background: 'linear-gradient(135deg, #0A5C8C 0%, #0B3D5C 100%)' }}>
-                  Continue
-                </button>
+              <div className="lex-step-actions">
+                <button className="lex-btn-primary" onClick={nextStep} disabled={!formData.issue}>Continue</button>
               </div>
             </div>
           )}
 
           {/* Step 2 — Details */}
           {step === 2 && (
-            <div>
-              <h3 className="text-xl font-bold text-slate-900 mb-2">Tell us more about the problem</h3>
-              <p className="text-sm text-slate-500 bg-slate-50 px-4 py-3 rounded-lg border-l-4 border-sky-600 mb-6">
-                {selectedService?.name} → {selectedService?.issues.find(i => i.id === formData.issue)?.label}
+            <div className="lex-step-content">
+              <h3>Tell us more about the problem</h3>
+              <p className="lex-subtitle">
+                {selectedService?.name} &rarr; {selectedService?.issues.find(i => i.id === formData.issue)?.label}
               </p>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Additional details (optional)</label>
-              <textarea
-                rows={4}
-                placeholder="Describe what's happening, any error codes, how long it's been going on, etc."
-                value={formData.issueDetails}
-                onChange={(e) => updateField('issueDetails', e.target.value)}
-                className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg text-base focus:border-sky-600 transition-colors resize-none"
-              />
-              <div className="mt-7 pt-6 border-t border-slate-200 flex gap-3">
-                <button onClick={prevStep} className="px-6 py-4 rounded-lg border-2 border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors">Back</button>
-                <button onClick={nextStep} className="flex-1 py-4 rounded-lg text-white font-semibold transition-all hover:shadow-lg" style={{ background: 'linear-gradient(135deg, #0A5C8C 0%, #0B3D5C 100%)' }}>Continue</button>
+              <div className="lex-form-group">
+                <label>Additional details (optional)</label>
+                <textarea
+                  rows={4}
+                  placeholder="Describe what's happening, any error codes, how long it's been going on, etc."
+                  value={formData.issueDetails}
+                  onChange={(e) => updateField('issueDetails', e.target.value)}
+                />
+              </div>
+              <div className="lex-step-actions">
+                <button className="lex-btn-secondary" onClick={prevStep}>Back</button>
+                <button className="lex-btn-primary" onClick={nextStep}>Continue</button>
               </div>
             </div>
           )}
 
           {/* Step 3 — Contact info */}
           {step === 3 && (
-            <div>
-              <h3 className="text-xl font-bold text-slate-900 mb-6">Your contact information</h3>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">First Name *</label>
-                  <input type="text" value={formData.firstName} onChange={(e) => updateField('firstName', e.target.value)} className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-sky-600 transition-colors" />
+            <div className="lex-step-content">
+              <h3>Your contact information</h3>
+              <div className="lex-form-row">
+                <div className="lex-form-group">
+                  <label>First Name *</label>
+                  <input type="text" value={formData.firstName} onChange={(e) => updateField('firstName', e.target.value)} />
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Last Name *</label>
-                  <input type="text" value={formData.lastName} onChange={(e) => updateField('lastName', e.target.value)} className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-sky-600 transition-colors" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Phone *</label>
-                  <input type="tel" placeholder="(214) 555-1234" value={formData.phone} onChange={(e) => updateField('phone', e.target.value)} className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-sky-600 transition-colors" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Email</label>
-                  <input type="email" placeholder="you@email.com" value={formData.email} onChange={(e) => updateField('email', e.target.value)} className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-sky-600 transition-colors" />
+                <div className="lex-form-group">
+                  <label>Last Name *</label>
+                  <input type="text" value={formData.lastName} onChange={(e) => updateField('lastName', e.target.value)} />
                 </div>
               </div>
-              <div className="mb-4">
-                <label className="block text-sm font-semibold text-slate-700 mb-2">Service Address *</label>
-                <input type="text" placeholder="123 Main St" value={formData.address} onChange={(e) => updateField('address', e.target.value)} className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-sky-600 transition-colors" />
-              </div>
-              <div className="grid grid-cols-3 gap-4 mb-4">
-                <div className="col-span-2">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">City *</label>
-                  <input type="text" value={formData.city} onChange={(e) => updateField('city', e.target.value)} className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-sky-600 transition-colors" />
+              <div className="lex-form-row">
+                <div className="lex-form-group">
+                  <label>Phone *</label>
+                  <input type="tel" placeholder="(214) 555-1234" value={formData.phone} onChange={(e) => updateField('phone', e.target.value)} />
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">ZIP *</label>
-                  <input type="text" placeholder="75024" value={formData.zip} onChange={(e) => updateField('zip', e.target.value)} className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-sky-600 transition-colors" />
+                <div className="lex-form-group">
+                  <label>Email</label>
+                  <input type="email" placeholder="you@email.com" value={formData.email} onChange={(e) => updateField('email', e.target.value)} />
+                </div>
+              </div>
+              <div className="lex-form-group">
+                <label>Service Address *</label>
+                <input type="text" placeholder="123 Main St" value={formData.address} onChange={(e) => updateField('address', e.target.value)} />
+              </div>
+              <div className="lex-form-row">
+                <div className="lex-form-group">
+                  <label>City *</label>
+                  <input type="text" value={formData.city} onChange={(e) => updateField('city', e.target.value)} />
+                </div>
+                <div className="lex-form-group lex-form-group-small">
+                  <label>ZIP *</label>
+                  <input type="text" placeholder="75024" value={formData.zip} onChange={(e) => updateField('zip', e.target.value)} />
                 </div>
               </div>
 
-              {/* ── Referral code field ────────────────────────── */}
-              <div className="mb-4">
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+              {/* ─�� Referral code field ────────────────────────── */}
+              <div className="lex-form-group">
+                <label>
                   Referral Code
-                  <span className="text-slate-400 font-normal ml-2">(optional)</span>
+                  <span style={{ color: '#94a3b8', fontWeight: 400, marginLeft: '8px' }}>(optional)</span>
                 </label>
                 {referralCodeSource === 'url' ? (
-                  // Code came from URL — show as locked with green badge
-                  <div className="flex items-center gap-3 px-4 py-3 bg-emerald-50 border-2 border-emerald-300 rounded-lg">
-                    <span className="text-emerald-600">🎁</span>
-                    <span className="font-semibold text-emerald-800 tracking-wide">{formData.referralCode}</span>
-                    <span className="ml-auto text-xs text-emerald-600 font-medium">Applied ✓</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', background: '#ecfdf5', border: '2px solid #6ee7b7', borderRadius: '8px' }}>
+                    <span style={{ color: '#059669' }}>��</span>
+                    <span style={{ fontWeight: 600, color: '#065f46', letterSpacing: '0.05em' }}>{formData.referralCode}</span>
+                    <span style={{ marginLeft: 'auto', fontSize: '12px', color: '#059669', fontWeight: 500 }}>Applied ✓</span>
                   </div>
                 ) : (
-                  // No URL code — let them type one in
                   <input
                     type="text"
                     placeholder="e.g. SARAH-1917"
@@ -352,21 +334,20 @@ export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, lo
                       updateField('referralCode', e.target.value.toUpperCase());
                       setReferralCodeSource(e.target.value ? 'manual' : null);
                     }}
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg focus:border-sky-600 transition-colors uppercase tracking-wider font-mono"
+                    style={{ textTransform: 'uppercase', letterSpacing: '0.1em', fontFamily: 'monospace' }}
                   />
                 )}
-                <p className="text-xs text-slate-400 mt-1.5">
+                <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '6px' }}>
                   Have a code from a friend? Enter it here to save on your service.
                 </p>
               </div>
 
-              <div className="mt-7 pt-6 border-t border-slate-200 flex gap-3">
-                <button onClick={prevStep} className="px-6 py-4 rounded-lg border-2 border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors">Back</button>
+              <div className="lex-step-actions">
+                <button className="lex-btn-secondary" onClick={prevStep}>Back</button>
                 <button
+                  className="lex-btn-primary"
                   onClick={nextStep}
                   disabled={!formData.firstName || !formData.lastName || !formData.phone || !formData.address || !formData.city || !formData.zip}
-                  className="flex-1 py-4 rounded-lg text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-lg"
-                  style={{ background: 'linear-gradient(135deg, #0A5C8C 0%, #0B3D5C 100%)' }}
                 >
                   Continue
                 </button>
@@ -376,48 +357,53 @@ export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, lo
 
           {/* Step 4 — Schedule */}
           {step === 4 && (
-            <div>
-              <h3 className="text-xl font-bold text-slate-900 mb-6">When works best for you?</h3>
-              <label className="block text-sm font-semibold text-slate-700 mb-3">Preferred Date</label>
-              <div className="grid grid-cols-4 gap-2 mb-6">
-                {getAvailableDates().slice(0, 8).map(date => (
-                  <button
-                    key={date.toISOString()}
-                    onClick={() => updateField('preferredDate', date.toISOString().split('T')[0])}
-                    className={`py-3 px-2 rounded-lg border-2 text-xs font-medium transition-all ${formData.preferredDate === date.toISOString().split('T')[0] ? 'border-sky-600 bg-sky-600 text-white' : 'border-slate-200 text-slate-600 hover:border-sky-600'}`}
-                  >
-                    {formatDate(date)}
-                  </button>
-                ))}
+            <div className="lex-step-content">
+              <h3>When works best for you?</h3>
+              <div className="lex-form-group">
+                <label>Preferred Date</label>
+                <div className="lex-date-grid">
+                  {getAvailableDates().slice(0, 8).map(date => (
+                    <button
+                      key={date.toISOString()}
+                      onClick={() => updateField('preferredDate', date.toISOString().split('T')[0])}
+                      className={`lex-date-btn ${formData.preferredDate === date.toISOString().split('T')[0] ? 'selected' : ''}`}
+                    >
+                      {formatDate(date)}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <label className="block text-sm font-semibold text-slate-700 mb-3">Preferred Time</label>
-              <div className="grid grid-cols-3 gap-3">
-                {timeSlots.map(slot => (
-                  <button
-                    key={slot.id}
-                    onClick={() => updateField('preferredTime', slot.id)}
-                    className={`py-4 px-3 rounded-lg border-2 flex flex-col items-center transition-all ${formData.preferredTime === slot.id ? 'border-sky-600 bg-sky-600 text-white' : 'border-slate-200 text-slate-600 hover:border-sky-600'}`}
-                  >
-                    <span className="font-semibold">{slot.label}</span>
-                    <span className="text-xs opacity-80">{slot.time}</span>
-                  </button>
-                ))}
+              <div className="lex-form-group">
+                <label>Preferred Time</label>
+                <div className="lex-time-grid">
+                  {timeSlots.map(slot => (
+                    <button
+                      key={slot.id}
+                      onClick={() => updateField('preferredTime', slot.id)}
+                      className={`lex-time-btn ${formData.preferredTime === slot.id ? 'selected' : ''}`}
+                    >
+                      <span className="lex-time-label">{slot.label}</span>
+                      <span className="lex-time-range">{slot.time}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              <p className="lex-availability-note">
+                Appointment times are subject to availability. We'll confirm your time by phone.
+              </p>
 
               {submitError && (
-                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-                  {submitError}
-                </div>
+                <div className="lex-error-message">{submitError}</div>
               )}
 
-              <div className="mt-7 pt-6 border-t border-slate-200 flex gap-3">
-                <button onClick={prevStep} className="px-6 py-4 rounded-lg border-2 border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 transition-colors">Back</button>
+              <div className="lex-step-actions">
+                <button className="lex-btn-secondary" onClick={prevStep}>Back</button>
                 <button
+                  className="lex-btn-primary"
                   onClick={handleSubmit}
                   disabled={!formData.preferredDate || !formData.preferredTime || isSubmitting}
-                  className="flex-1 py-4 rounded-lg text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-lg"
-                  style={{ background: 'linear-gradient(135deg, #0A5C8C 0%, #0B3D5C 100%)' }}
                 >
                   {isSubmitting ? 'Submitting...' : 'Request Appointment'}
                 </button>
@@ -427,13 +413,15 @@ export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, lo
 
           {/* Step 5 — Confirmation */}
           {step === 5 && submitSuccess && (
-            <div className="text-center py-6">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 text-white text-4xl flex items-center justify-center mx-auto mb-6 shadow-lg">✓</div>
-              <h3 className="text-2xl font-bold text-slate-900 mb-3">Request Received!</h3>
-              <p className="text-slate-600 mb-2">Thanks, {formData.firstName}! We've received your {selectedService?.name.toLowerCase()} service request.</p>
-              <p className="text-slate-500 text-sm mb-6">A member of our team will call you shortly to confirm your appointment.</p>
+            <div className="lex-confirmation">
+              <div className="lex-success-icon">✓</div>
+              <h3>Request Received!</h3>
+              <div className="lex-confirmation-details">
+                <p>Thanks, {formData.firstName}! We've received your {selectedService?.name.toLowerCase()} service request.</p>
+                <p>A member of our team will call you shortly to confirm your appointment.</p>
+              </div>
 
-              <div className="bg-slate-50 rounded-xl p-5 text-left mb-6">
+              <div className="lex-confirmation-summary">
                 {[
                   ['Service',        selectedService?.name],
                   ['Issue',          selectedService?.issues.find(i => i.id === formData.issue)?.label],
@@ -441,21 +429,21 @@ export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, lo
                   ['Preferred Time', timeSlots.find(t => t.id === formData.preferredTime)?.label],
                   ...(formData.referralCode ? [['Referral Code', formData.referralCode]] : []),
                 ].map(([label, value]) => value ? (
-                  <div key={label} className="flex justify-between py-2 border-b border-slate-200 last:border-0 text-sm">
-                    <span className="text-slate-500 font-medium">{label}:</span>
-                    <span className="text-slate-900 font-semibold">{value}</span>
+                  <div key={label} className="lex-summary-row">
+                    <span>{label}:</span>
+                    <span>{value}</span>
                   </div>
                 ) : null)}
               </div>
 
               {formData.referralCode && (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 text-emerald-800 text-sm mb-4">
+                <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '8px', padding: '14px 18px', color: '#065f46', fontSize: '14px', marginBottom: '16px', textAlign: 'left' }}>
                   🎁 Referral code <strong>{formData.referralCode}</strong> has been applied. Your discount will be reflected on your final invoice.
                 </div>
               )}
 
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-amber-800 text-sm mb-6">
-                <strong>Emergency?</strong> Call us now at <a href="tel:9724661917" className="font-bold underline">(972) 466-1917</a>
+              <div className="lex-emergency-note">
+                <strong>Emergency?</strong> Call us now at <a href="tel:9724661917">{phone}</a>
               </div>
             </div>
           )}
@@ -463,9 +451,9 @@ export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, lo
         </div>
 
         {/* Footer */}
-        <div className="bg-slate-50 border-t border-slate-200 px-7 py-4 text-center">
-          <p className="text-xs text-slate-500">The Gold Standard of White Glove Service</p>
-          <p className="text-xs text-slate-500 mt-1">Need immediate help? <a href="tel:9724661917" className="text-sky-700 font-semibold">(972) 466-1917</a></p>
+        <div className="lex-scheduler-footer">
+          <p>{tag}</p>
+          <p>Need immediate help? <a href="tel:9724661917">{phone}</a></p>
         </div>
 
       </div>
