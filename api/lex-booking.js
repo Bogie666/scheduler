@@ -114,7 +114,7 @@ module.exports = async function handler(req, res) {
 
     // Include referral code in summary so CSRs can see it clearly
     if (referralCode) {
-      summary += ` | REFERRAL CODE: ${referralCode}`;
+      summary += ` | REFERRAL CODE: ${referralCode} *** $50 Off $350+ ***`;
     }
 
     // ── Build contacts array ───────────────────────────────────
