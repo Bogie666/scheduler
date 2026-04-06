@@ -116,21 +116,34 @@ module.exports = async function handler(req, res) {
     const contacts = [{ type: 'Phone', value: cleanPhone }];
     if (email) contacts.push({ type: 'Email', value: email });
 
+    // ── Time window mapping ──────────────────────────────────
+    const timeWindows = {
+      morning:         { start: '08:00:00', end: '12:00:00' },
+      afternoon:       { start: '12:00:00', end: '17:00:00' },
+      'first-available': { start: '08:00:00', end: '17:00:00' },
+    };
+    const tw = timeWindows[preferredTime] || timeWindows['first-available'];
+
     // ── Submit to ST Bookings API ─────────────────────────────
+    const externalId = `LEX-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
     const bookingPayload = {
-      source:    'Online',
+      externalId,
+      source:    'Website',
       name:      `${firstName} ${lastName}`,
+      summary,
+      body:      summary,
       address: {
         street:  address,
         city,
         state:   'TX',
         zip,
-        country: 'US',
+        country: 'USA',
       },
       contacts,
-      summary,
       isFirstTimeClient: false,
-      priority:          'Normal',
+      start: `${preferredDate}T${tw.start}`,
+      end:   `${preferredDate}T${tw.end}`,
     };
 
     const response = await axios.post(
