@@ -15,9 +15,9 @@ const axios = require('axios');
 const ST_AUTH_URL          = 'https://auth.servicetitan.io/connect/token';
 const ST_API_BASE          = 'https://api.servicetitan.io';
 const TENANT_ID            = process.env.ST_TENANT_ID            || '1498628772';
-const APP_KEY              = process.env.ST_APP_KEY               || process.env.ST_APP_ID;
-const CLIENT_ID            = process.env.ST_CLIENT_ID;
-const CLIENT_SECRET        = process.env.ST_CLIENT_SECRET;
+const APP_KEY              = process.env.ST_APP_KEY               || process.env.ST_APP_ID || process.env.SERVICETITAN_APP_KEY;
+const CLIENT_ID            = process.env.ST_CLIENT_ID             || process.env.SERVICETITAN_CLIENT_ID;
+const CLIENT_SECRET        = process.env.ST_CLIENT_SECRET         || process.env.SERVICETITAN_CLIENT_SECRET;
 const BOOKING_PROVIDER_ID  = process.env.ST_BOOKING_PROVIDER_ID  || '346456684';
 
 // ── Token cache ───────────────────────────────────────────────
