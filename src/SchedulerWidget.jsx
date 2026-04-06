@@ -99,7 +99,7 @@ export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, lo
     setSubmitError('');
 
     try {
-      const apiEndpoint = apiEndpointProp || window.LEXSchedulerConfig?.apiEndpoint || '/api/lex-booking';
+      const apiEndpoint = apiEndpointProp || window.LEXSchedulerConfig?.apiEndpoint || 'https://scheduler-mu-three.vercel.app/api/lex-booking';
 
       const payload = {
         serviceType:   formData.serviceType,
