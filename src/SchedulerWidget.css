@@ -598,13 +598,58 @@
 /* Mobile Responsive */
 @media (max-width: 540px) {
   .lex-scheduler-overlay {
-    padding: 0;
-    align-items: flex-end;
+    padding: 0 !important;
+    align-items: flex-end !important;
   }
 
   .lex-scheduler-modal {
-    max-height: 95vh;
-    border-radius: 20px 20px 0 0;
+    max-height: 100vh !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+  }
+
+  .lex-scheduler-header {
+    padding: 14px 16px !important;
+  }
+
+  .lex-header-logo {
+    height: 44px;
+  }
+
+  .lex-close-btn {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 20px !important;
+  }
+
+  .lex-progress-bar {
+    padding: 12px 16px !important;
+    gap: 4px !important;
+  }
+
+  .lex-step-number {
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+
+  .lex-step-label {
+    display: none;
+  }
+
+  .lex-step-content {
+    padding: 20px 16px !important;
+  }
+
+  .lex-step-content h3 {
+    font-size: 18px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .lex-subtitle {
+    font-size: 13px;
+    padding: 10px 12px;
+    margin-bottom: 16px;
   }
 
   .lex-service-grid {
@@ -613,11 +658,13 @@
   }
 
   .lex-service-card {
-    padding: 16px 8px;
+    padding: 14px 8px !important;
+    gap: 8px !important;
+    border-radius: 10px !important;
   }
 
   .lex-service-icon {
-    font-size: 28px;
+    font-size: 26px;
   }
 
   .lex-service-name {
@@ -626,6 +673,22 @@
 
   .lex-issue-grid {
     grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .lex-issue-btn {
+    padding: 10px 14px !important;
+    font-size: 13px !important;
+  }
+
+  .lex-form-group {
+    margin-bottom: 14px;
+  }
+
+  .lex-form-group input,
+  .lex-form-group textarea {
+    padding: 10px 12px !important;
+    font-size: 16px !important; /* Prevents iOS auto-zoom on focus */
   }
 
   .lex-form-row {
@@ -639,17 +702,115 @@
 
   .lex-date-grid {
     grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .lex-date-btn {
+    padding: 8px 6px !important;
+    font-size: 11px !important;
+  }
+
+  .lex-time-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .lex-time-btn {
+    padding: 12px 10px;
+  }
+
+  .lex-time-label {
+    font-size: 13px;
+  }
+
+  .lex-time-range {
+    font-size: 11px;
+  }
+
+  .lex-step-actions {
+    margin-top: 20px;
+    padding-top: 16px;
+    gap: 8px;
+  }
+
+  .lex-btn-primary,
+  .lex-btn-secondary {
+    padding: 12px 20px !important;
+    font-size: 14px !important;
+  }
+
+  .lex-confirmation {
+    padding: 28px 16px;
+  }
+
+  .lex-success-icon {
+    width: 56px;
+    height: 56px;
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
+
+  .lex-confirmation p {
+    font-size: 14px;
+  }
+
+  .lex-confirmation-summary {
+    padding: 14px;
+  }
+
+  .lex-summary-row {
+    font-size: 13px;
+    padding: 6px 0;
+  }
+
+  .lex-emergency-note {
+    font-size: 13px;
+    padding: 10px 14px;
+  }
+
+  .lex-scheduler-footer {
+    padding: 12px 16px;
+  }
+
+  .lex-scheduler-footer p {
+    font-size: 11px;
+  }
+
+  .lex-error-message {
+    font-size: 13px;
+    padding: 10px 12px;
+  }
+}
+
+/* Extra small phones */
+@media (max-width: 380px) {
+  .lex-service-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .lex-service-card {
+    padding: 10px 4px !important;
+    gap: 6px !important;
+  }
+
+  .lex-service-icon {
+    font-size: 22px;
+  }
+
+  .lex-service-name {
+    font-size: 10px;
+  }
+
+  .lex-date-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .lex-time-grid {
     grid-template-columns: 1fr;
   }
 
-  .lex-progress-bar {
-    padding: 16px 20px;
-  }
-
-  .lex-step-label {
-    display: none;
+  .lex-step-content {
+    padding: 16px 12px !important;
   }
 }
