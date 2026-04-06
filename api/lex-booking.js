@@ -20,11 +20,6 @@ const CLIENT_ID            = process.env.ST_CLIENT_ID;
 const CLIENT_SECRET        = process.env.ST_CLIENT_SECRET;
 const BOOKING_PROVIDER_ID  = process.env.ST_BOOKING_PROVIDER_ID  || '346456684';
 
-// typeId for "Referred by Code" custom field on bookings
-const REFERRED_BY_CODE_TYPE_ID = parseInt(
-  process.env.ST_REFERRED_BY_CODE_TYPE_ID || '406119323'
-);
-
 // ── Token cache ───────────────────────────────────────────────
 let cachedToken    = null;
 let tokenExpiresAt = 0;
@@ -121,16 +116,6 @@ module.exports = async function handler(req, res) {
     const contacts = [{ type: 'Phone', value: cleanPhone }];
     if (email) contacts.push({ type: 'Email', value: email });
 
-    // ── Build custom fields array ──────────────────────────────
-    // Include referral code as a custom field on the booking
-    const customFields = [];
-    if (referralCode) {
-      customFields.push({
-        typeId: REFERRED_BY_CODE_TYPE_ID,
-        value:  referralCode.trim().toUpperCase(),
-      });
-    }
-
     // ── Submit to ST Bookings API ─────────────────────────────
     const bookingPayload = {
       source:    'Online',
@@ -144,9 +129,8 @@ module.exports = async function handler(req, res) {
       },
       contacts,
       summary,
-      isFirstTimeClient: null,
+      isFirstTimeClient: false,
       priority:          'Normal',
-      ...(customFields.length > 0 && { customFields }),
     };
 
     const response = await axios.post(
@@ -170,13 +154,11 @@ module.exports = async function handler(req, res) {
     });
 
   } catch (err) {
-    const stError = err.response?.data || err.message;
-    console.error('[Booking] Error:', JSON.stringify(stError));
+    console.error('[Booking] Error:', err.response?.data || err.message);
 
     return res.status(500).json({
       error:   'booking_failed',
       message: 'We had trouble submitting your request. Please call us at (972) 466-1917.',
-      debug:   stError,
     });
   }
 };
