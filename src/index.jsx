@@ -44,11 +44,14 @@ function initLEXScheduler(config = {}) {
   let root = null;
   let isOpen = false;
 
-  // Create container for widget
+  // Create container for widget — must be a direct child of <html> or <body>
+  // and NOT inside any element with CSS transform (which breaks position:fixed).
   function createContainer() {
     container = document.createElement('div');
     container.id = 'lex-scheduler-root';
-    document.body.appendChild(container);
+    // Append to documentElement (<html>) to guarantee we're outside any
+    // transformed wrapper like .lex-page { transform: translateX(-50%) }
+    document.documentElement.appendChild(container);
     root = createRoot(container);
   }
 
