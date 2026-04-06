@@ -599,12 +599,15 @@
 @media (max-width: 540px) {
   .lex-scheduler-overlay {
     padding: 0 !important;
-    align-items: flex-end !important;
+    align-items: stretch !important;
+    justify-content: stretch !important;
   }
 
   .lex-scheduler-modal {
-    max-height: 100vh !important;
-    height: 100vh !important;
+    max-height: none !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    width: 100% !important;
     border-radius: 0 !important;
   }
 
