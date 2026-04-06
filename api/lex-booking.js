@@ -168,12 +168,11 @@ module.exports = async function handler(req, res) {
 
   } catch (err) {
     const stError = err.response?.data || err.message;
-    console.error('[Booking] Full ST Error:', JSON.stringify(stError, null, 2));
+    console.error('[Booking] Error:', stError);
 
     return res.status(500).json({
       error:   'booking_failed',
       message: 'We had trouble submitting your request. Please call us at (972) 466-1917.',
-      debug:   stError,
     });
   }
 };
