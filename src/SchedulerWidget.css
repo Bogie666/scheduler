@@ -3,7 +3,9 @@
 
 /* CSS Isolation - Scoped reset for widget */
 .lex-scheduler-overlay,
-.lex-scheduler-overlay * {
+.lex-scheduler-overlay *,
+.lex-scheduler-overlay *::before,
+.lex-scheduler-overlay *::after {
   box-sizing: border-box !important;
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
   line-height: 1.5 !important;
@@ -12,6 +14,16 @@
   text-decoration: none !important;
   float: none !important;
   visibility: visible !important;
+}
+
+/* Prevent host site .lex-btn rules from affecting widget buttons */
+.lex-scheduler-overlay .lex-btn-primary,
+.lex-scheduler-overlay .lex-btn-secondary {
+  width: auto !important;
+}
+
+.lex-scheduler-overlay .lex-btn-primary {
+  flex: 1 !important;
 }
 
 .lex-scheduler-overlay {
@@ -200,6 +212,28 @@
   background: #f8fafc;
   border-radius: 8px;
   border-left: 3px solid #133865;
+}
+
+/* High-specificity overrides to beat host site .lex-* rules */
+.lex-scheduler-overlay .lex-service-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+}
+.lex-scheduler-overlay .lex-issue-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+}
+.lex-scheduler-overlay .lex-form-row {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+}
+.lex-scheduler-overlay .lex-date-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+}
+.lex-scheduler-overlay .lex-time-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
 }
 
 /* Service Cards */
@@ -607,6 +641,23 @@
     padding: 0 !important;
     align-items: stretch !important;
     justify-content: stretch !important;
+  }
+
+  /* High-specificity mobile grid overrides */
+  .lex-scheduler-overlay .lex-service-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+  .lex-scheduler-overlay .lex-issue-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .lex-scheduler-overlay .lex-form-row {
+    grid-template-columns: 1fr !important;
+  }
+  .lex-scheduler-overlay .lex-date-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+  .lex-scheduler-overlay .lex-time-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
 
   .lex-scheduler-modal {
