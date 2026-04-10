@@ -114,8 +114,10 @@ module.exports = async function handler(req, res) {
       {
         startsOnOrAfter,
         endsOnOrBefore,
-        businessUnitId: mapping.businessUnitId,
-        jobTypeId:      mapping.jobTypeId,
+        businessUnitId:        mapping.businessUnitId,
+        jobTypeId:             mapping.jobTypeId,
+        skillBasedAvailability: false,
+        args:                  {},
       },
       {
         headers: {
