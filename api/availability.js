@@ -137,7 +137,7 @@ module.exports = async function handler(req, res) {
         availableHours: day.openCapacity ?? day.availableHours ?? 0,
       }));
 
-    return res.status(200).json({ slots });
+    return res.status(200).json({ slots, _debug: { rawResponse: response.data, rawCount: (Array.isArray(data) ? data : []).length, sampleRaw: (Array.isArray(data) ? data : []).slice(0, 3) } });
 
   } catch (err) {
     const stError = err.response?.data || err.message;
