@@ -100,18 +100,26 @@ module.exports = async function handler(req, res) {
   try {
     const token = await getAccessToken();
 
-    // Date range: startsOn (or today) through +14 days
-    const start = startsOn ? new Date(startsOn) : new Date();
-    start.setHours(0, 0, 0, 0);
+    // ── Diagnostic: test bare path with no query params ────────
+    const testUrl = `${ST_API_BASE}/dispatch/v2/tenant/${TENANT_ID}/capacity`;
+    console.log('[Availability] Testing URL:', testUrl);
+    const testRes = await axios.get(testUrl, {
+      headers: { Authorization: `Bearer ${token}`, 'ST-App-Key': APP_KEY },
+      validateStatus: () => true, // don't throw on non-2xx
+    });
+    console.log('[Availability] Bare path status:', testRes.status);
+    console.log('[Availability] Bare path body:', JSON.stringify(testRes.data));
 
-    const end = new Date(start);
-    end.setDate(end.getDate() + 14);
-
-    const startsOnOrAfter = start.toISOString();
-    const endsOnOrBefore  = end.toISOString();
-
-    const response = await axios.get(
-      `${ST_API_BASE}/dispatch/v2/tenant/${TENANT_ID}/capacity`,
+    // Return diagnostic result temporarily
+    return res.status(200).json({
+      _diagnostic: {
+        url: testUrl,
+        status: testRes.status,
+        body: testRes.data,
+        tenantId: TENANT_ID,
+        appKey: APP_KEY ? `${APP_KEY.substring(0, 6)}...` : 'MISSING',
+      }
+    });
       {
         params: {
           businessUnitId:   buId,
