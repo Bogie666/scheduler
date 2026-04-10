@@ -128,16 +128,37 @@ module.exports = async function handler(req, res) {
       }
     );
 
-    // Filter out days with no availability and build clean response
-    const data = response.data?.data || response.data || [];
-    const slots = (Array.isArray(data) ? data : [])
-      .filter(day => (day.openCapacity ?? day.availableHours ?? 0) > 0)
-      .map(day => ({
-        date:           day.date?.split('T')[0] || day.date,
-        availableHours: day.openCapacity ?? day.availableHours ?? 0,
-      }));
+    // Parse response — ST returns time windows grouped by BU per day.
+    // Each entry has: start, end, businessUnitIds[], openAvailability, isAvailable
+    // We need to:
+    //  1. Filter to windows that include our target BU
+    //  2. Group by date
+    //  3. Sum openAvailability across windows for each date
+    //  4. Only return dates with availability > 0
+    const availabilities = response.data?.availabilities || [];
+    const targetBuId = mapping.businessUnitId;
 
-    return res.status(200).json({ slots, _debug: { rawResponse: response.data, rawCount: (Array.isArray(data) ? data : []).length, sampleRaw: (Array.isArray(data) ? data : []).slice(0, 3) } });
+    const dayMap = {};
+    for (const window of availabilities) {
+      // Only count windows that include our business unit
+      if (!window.businessUnitIds || !window.businessUnitIds.includes(targetBuId)) continue;
+      if (!window.isAvailable) continue;
+
+      const date = window.start?.split('T')[0];
+      if (!date) continue;
+
+      if (!dayMap[date]) {
+        dayMap[date] = 0;
+      }
+      dayMap[date] += window.openAvailability || 0;
+    }
+
+    const slots = Object.entries(dayMap)
+      .filter(([, hours]) => hours > 0)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, availableHours]) => ({ date, availableHours }));
+
+    return res.status(200).json({ slots });
 
   } catch (err) {
     const stError = err.response?.data || err.message;
