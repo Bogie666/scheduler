@@ -1,6 +1,6 @@
 /**
- * GET /api/availability — DIAGNOSTIC MODE
- * Tests the ST Dispatch Capacity API path and returns raw results.
+ * GET /api/availability — MULTI-PATH DIAGNOSTIC
+ * Probes multiple ST API paths to find the correct capacity endpoint.
  */
 
 const axios = require('axios');
@@ -42,36 +42,40 @@ module.exports = async function handler(req, res) {
 
   try {
     const token = await getAccessToken();
+    const headers = { Authorization: `Bearer ${token}`, 'ST-App-Key': APP_KEY };
 
-    // Test bare path — no query params
-    const testUrl = `${ST_API_BASE}/dispatch/v2/tenant/${TENANT_ID}/capacity`;
-    const testRes = await axios.get(testUrl, {
-      headers: { Authorization: `Bearer ${token}`, 'ST-App-Key': APP_KEY },
-      validateStatus: () => true,
-    });
+    // Probe multiple possible paths
+    const paths = [
+      `/dispatch/v2/tenant/${TENANT_ID}/capacity`,
+      `/dispatch/v2/tenant/${TENANT_ID}/capacity/availability`,
+      `/dispatch/v2/tenant/${TENANT_ID}/available-capacity`,
+      `/jpm/v2/tenant/${TENANT_ID}/capacity`,
+      `/jpm/v2/tenant/${TENANT_ID}/available-capacity`,
+      `/scheduling/v2/tenant/${TENANT_ID}/capacity`,
+      `/scheduling/v2/tenant/${TENANT_ID}/availability`,
+      `/dispatch/v2/tenant/${TENANT_ID}/capacity?businessUnitId=6534`,
+    ];
 
-    return res.status(200).json({
-      diagnostic: {
-        url: testUrl,
-        httpStatus: testRes.status,
-        body: testRes.data,
-        tenantId: TENANT_ID,
-        appKey: APP_KEY ? `${APP_KEY.substring(0, 8)}...` : 'MISSING',
-        clientId: CLIENT_ID ? `${CLIENT_ID.substring(0, 8)}...` : 'MISSING',
-        tokenOk: !!token,
+    const results = [];
+    for (const path of paths) {
+      try {
+        const r = await axios.get(`${ST_API_BASE}${path}`, {
+          headers,
+          validateStatus: () => true,
+          timeout: 5000,
+        });
+        results.push({ path, status: r.status, title: r.data?.title || null });
+      } catch (e) {
+        results.push({ path, status: 'error', message: e.message });
       }
-    });
+    }
+
+    return res.status(200).json({ results });
 
   } catch (err) {
     return res.status(200).json({
-      diagnostic: {
-        error: err.message,
-        responseData: err.response?.data || null,
-        responseStatus: err.response?.status || null,
-        tenantId: TENANT_ID,
-        appKey: APP_KEY ? `${APP_KEY.substring(0, 8)}...` : 'MISSING',
-        clientId: CLIENT_ID ? `${CLIENT_ID.substring(0, 8)}...` : 'MISSING',
-      }
+      error: err.message,
+      responseData: err.response?.data || null,
     });
   }
 };
