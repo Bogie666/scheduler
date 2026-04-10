@@ -134,12 +134,12 @@ module.exports = async function handler(req, res) {
         availableHours: day.openCapacity ?? day.availableHours ?? 0,
       }));
 
-    return res.status(200).json({ slots });
+    return res.status(200).json({ slots, _debug: { rawCount: (Array.isArray(data) ? data : []).length, buId, sample: (Array.isArray(data) ? data : []).slice(0, 2) } });
 
   } catch (err) {
     const stError = err.response?.data || err.message;
     console.error('[Availability] Error:', stError);
 
-    return res.status(500).json({ error: 'Failed to fetch availability' });
+    return res.status(500).json({ error: 'Failed to fetch availability', debug: stError });
   }
 };
