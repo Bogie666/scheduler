@@ -96,18 +96,19 @@ export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, lo
 
   // ── Fetch live availability when reaching Step 4 ────────────
   useEffect(() => {
-    if (step !== 4 || !formData.serviceType) return;
+    if (step !== 4 || !formData.issue) return;
     setLoadingSlots(true);
     setSlotsError(false);
+    setAvailableSlots([]);
 
     const apiBase = apiEndpointProp || window.LEXSchedulerConfig?.apiEndpoint || 'https://scheduler-mu-three.vercel.app/api/lex-booking';
     const base = apiBase.replace('/api/lex-booking', '');
-    fetch(`${base}/api/availability?serviceType=${formData.serviceType}`)
+    fetch(`${base}/api/availability?issue=${formData.issue}`)
       .then(r => r.json())
       .then(data => setAvailableSlots(data.slots || []))
       .catch(() => setSlotsError(true))
       .finally(() => setLoadingSlots(false));
-  }, [step, formData.serviceType]);
+  }, [step, formData.issue]);
 
   const updateField = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
   const nextStep    = () => setStep(s => s + 1);

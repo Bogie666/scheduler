@@ -5,8 +5,16 @@
  * Adaptive Capacity API for the next 14 days.
  *
  * Query params:
- *   serviceType  (required) — hvac | plumbing | electrical
- *   startsOn     (optional) — ISO date string, defaults to today
+ *   issue       (required) — the specific issue ID from the widget
+ *   startsOn    (optional) — ISO date string, defaults to today
+ *
+ * Issue → Business Unit mapping:
+ *   HVAC Repair (ac-not-cooling, heater-not-working,
+ *     strange-noises, hvac-other)              → ST_BU_HVAC_REPAIR
+ *   HVAC Maintenance (hvac-maintenance)        → ST_BU_HVAC_MAINTENANCE
+ *   HVAC Install (new-system)                  → ST_BU_HVAC_INSTALL
+ *   Plumbing (all plumbing issues)             → ST_BU_PLUMBING
+ *   Electrical (all electrical issues)         → ST_BU_ELECTRICAL
  * ─────────────────────────────────────────────────────────────
  */
 
@@ -19,11 +27,31 @@ const APP_KEY       = process.env.ST_APP_KEY        || process.env.ST_APP_ID || 
 const CLIENT_ID     = process.env.ST_CLIENT_ID      || process.env.SERVICETITAN_CLIENT_ID;
 const CLIENT_SECRET = process.env.ST_CLIENT_SECRET  || process.env.SERVICETITAN_CLIENT_SECRET;
 
-// Business Unit IDs per service type
-const BU_MAP = {
-  hvac:       process.env.ST_BU_HVAC,
-  plumbing:   process.env.ST_BU_PLUMBING,
-  electrical: process.env.ST_BU_ELECTRICAL,
+// Issue → Business Unit ID mapping
+const ISSUE_BU_MAP = {
+  // HVAC Repair — BU 6534
+  'ac-not-cooling':     process.env.ST_BU_HVAC_REPAIR       || '6534',
+  'heater-not-working': process.env.ST_BU_HVAC_REPAIR       || '6534',
+  'strange-noises':     process.env.ST_BU_HVAC_REPAIR       || '6534',
+  'hvac-other':         process.env.ST_BU_HVAC_REPAIR       || '6534',
+  // HVAC Maintenance — BU 7831
+  'hvac-maintenance':   process.env.ST_BU_HVAC_MAINTENANCE  || '7831',
+  // HVAC Install — BU 8085
+  'new-system':         process.env.ST_BU_HVAC_INSTALL      || '8085',
+  // Plumbing — BU 124467371
+  'leak':               process.env.ST_BU_PLUMBING          || '124467371',
+  'clogged-drain':      process.env.ST_BU_PLUMBING          || '124467371',
+  'water-heater':       process.env.ST_BU_PLUMBING          || '124467371',
+  'no-hot-water':       process.env.ST_BU_PLUMBING          || '124467371',
+  'toilet-issue':       process.env.ST_BU_PLUMBING          || '124467371',
+  'plumbing-other':     process.env.ST_BU_PLUMBING          || '124467371',
+  // Electrical — BU 161649734
+  'outlet-not-working': process.env.ST_BU_ELECTRICAL        || '161649734',
+  'breaker-tripping':   process.env.ST_BU_ELECTRICAL        || '161649734',
+  'lighting-issue':     process.env.ST_BU_ELECTRICAL        || '161649734',
+  'panel-upgrade':      process.env.ST_BU_ELECTRICAL        || '161649734',
+  'ceiling-fan':        process.env.ST_BU_ELECTRICAL        || '161649734',
+  'electrical-other':   process.env.ST_BU_ELECTRICAL        || '161649734',
 };
 
 // ── Token cache (shared across warm invocations) ─────────────
@@ -58,15 +86,15 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { serviceType, startsOn } = req.query || {};
+  const { issue, startsOn } = req.query || {};
 
-  if (!serviceType) {
-    return res.status(400).json({ error: 'serviceType query param is required (hvac, plumbing, electrical)' });
+  if (!issue) {
+    return res.status(400).json({ error: 'issue query param is required (e.g. ac-not-cooling, leak, panel-upgrade)' });
   }
 
-  const buId = BU_MAP[serviceType.toLowerCase()];
+  const buId = ISSUE_BU_MAP[issue.toLowerCase()];
   if (!buId) {
-    return res.status(400).json({ error: `Invalid serviceType: ${serviceType}. Must be hvac, plumbing, or electrical.` });
+    return res.status(400).json({ error: `Unknown issue: ${issue}. No business unit mapping found.` });
   }
 
   try {
