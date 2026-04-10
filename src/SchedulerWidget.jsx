@@ -55,6 +55,11 @@ export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, lo
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError,   setSubmitError]   = useState('');
 
+  // ── Availability state ─────────────────────────────────────
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [loadingSlots,   setLoadingSlots]   = useState(false);
+  const [slotsError,     setSlotsError]     = useState(false);
+
   // ── Referral code state ──────────���───────────────────────────
   const [referralCodeSource, setReferralCodeSource] = useState(null);
 
@@ -88,6 +93,21 @@ export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, lo
       // URL parsing can fail in some embed contexts — ignore
     }
   }, []);
+
+  // ── Fetch live availability when reaching Step 4 ────────────
+  useEffect(() => {
+    if (step !== 4 || !formData.serviceType) return;
+    setLoadingSlots(true);
+    setSlotsError(false);
+
+    const apiBase = apiEndpointProp || window.LEXSchedulerConfig?.apiEndpoint || 'https://scheduler-mu-three.vercel.app/api/lex-booking';
+    const base = apiBase.replace('/api/lex-booking', '');
+    fetch(`${base}/api/availability?serviceType=${formData.serviceType}`)
+      .then(r => r.json())
+      .then(data => setAvailableSlots(data.slots || []))
+      .catch(() => setSlotsError(true))
+      .finally(() => setLoadingSlots(false));
+  }, [step, formData.serviceType]);
 
   const updateField = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
   const nextStep    = () => setStep(s => s + 1);
@@ -140,20 +160,6 @@ export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, lo
   };
 
   const selectedService = services[formData.serviceType];
-
-  const getAvailableDates = () => {
-    const dates = [];
-    const today = new Date();
-    for (let i = 1; i <= 14; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
-      if (date.getDay() !== 0) dates.push(date);
-    }
-    return dates;
-  };
-
-  const formatDate = (date) =>
-    date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
   const handleClose = () => {
     setIsOpen(false);
@@ -362,15 +368,32 @@ export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, lo
               <div className="lex-form-group">
                 <label>Preferred Date</label>
                 <div className="lex-date-grid">
-                  {getAvailableDates().slice(0, 8).map(date => (
-                    <button
-                      key={date.toISOString()}
-                      onClick={() => updateField('preferredDate', date.toISOString().split('T')[0])}
-                      className={`lex-date-btn ${formData.preferredDate === date.toISOString().split('T')[0] ? 'selected' : ''}`}
-                    >
-                      {formatDate(date)}
-                    </button>
-                  ))}
+                  {loadingSlots ? (
+                    <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#64748b', fontSize: '14px', padding: '12px 0' }}>
+                      Checking availability...
+                    </p>
+                  ) : slotsError ? (
+                    <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#991b1b', fontSize: '14px', padding: '12px 0' }}>
+                      Unable to load availability. Please call us at (972) 466-1917.
+                    </p>
+                  ) : availableSlots.length === 0 ? (
+                    <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#64748b', fontSize: '14px', padding: '12px 0' }}>
+                      No available dates found in the next 14 days. Please call (972) 466-1917.
+                    </p>
+                  ) : (
+                    availableSlots.map(slot => {
+                      const d = new Date(slot.date + 'T12:00:00');
+                      return (
+                        <button
+                          key={slot.date}
+                          onClick={() => updateField('preferredDate', slot.date)}
+                          className={`lex-date-btn ${formData.preferredDate === slot.date ? 'selected' : ''}`}
+                        >
+                          {d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                        </button>
+                      );
+                    })
+                  )}
                 </div>
               </div>
 
