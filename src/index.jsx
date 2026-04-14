@@ -70,7 +70,7 @@ function initLEXScheduler(config = {}) {
         phoneNumber={phoneNumber}
       />
     );
-    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
   }
 
   // Close the scheduler
@@ -79,7 +79,7 @@ function initLEXScheduler(config = {}) {
       root.render(null);
     }
     isOpen = false;
-    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
   }
 
   // Toggle scheduler
