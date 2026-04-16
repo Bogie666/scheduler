@@ -61,6 +61,8 @@ export default function App({
   headerTitle,
   headerSubtitle,
   step1Heading,
+  step2Heading,
+  step2Placeholder,
 }) {
   const services = servicesProp || defaultServices;
   const timeSlots = timeSlotsProp || defaultTimeSlots;
@@ -280,7 +282,7 @@ export default function App({
           {/* Step 2 — Details */}
           {step === 2 && (
             <div className="lex-step-content">
-              <h3>Tell us more about the problem</h3>
+              <h3>{step2Heading || 'Tell us more about the problem'}</h3>
               <p className="lex-subtitle">
                 {selectedService?.name}
                 {selectedService && selectedService.issues.length > 1 && (
@@ -291,7 +293,7 @@ export default function App({
                 <label>Additional details (optional)</label>
                 <textarea
                   rows={4}
-                  placeholder="Describe what's happening, any error codes, how long it's been going on, etc."
+                  placeholder={step2Placeholder || "Describe what's happening, any error codes, how long it's been going on, etc."}
                   value={formData.issueDetails}
                   onChange={(e) => updateField('issueDetails', e.target.value)}
                 />
