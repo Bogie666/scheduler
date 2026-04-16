@@ -226,7 +226,7 @@ export default function App({
               <h3>{step1Heading || 'What do you need help with?'}</h3>
               <div
                 className="lex-service-grid"
-                style={Object.keys(services).length !== 3 ? { gridTemplateColumns: `repeat(${Math.min(Object.keys(services).length, 4)}, 1fr)` } : undefined}
+                style={Object.keys(services).length !== 3 ? { gridTemplateColumns: `repeat(2, 1fr)` } : undefined}
               >
                 {Object.entries(services).map(([key, service]) => (
                   <button
