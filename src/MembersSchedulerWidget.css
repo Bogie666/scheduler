@@ -1,0 +1,69 @@
+/* LEX Members Scheduler Widget Styles
+   Reuses the base widget CSS, then overrides accent colors to the
+   LEX Members navy + gold brand palette. */
+@import './SchedulerWidget.css';
+
+/* Brand tokens */
+:root {
+  --lex-members-navy:       #0e2a4a;
+  --lex-members-navy-dark:  #081a30;
+  --lex-members-gold:       #C9A14A;
+  --lex-members-gold-dark:  #A6822F;
+  --lex-members-gold-soft:  #FAF3E0;
+}
+
+/* Header: richer navy */
+.lex-scheduler-header {
+  background: linear-gradient(135deg, var(--lex-members-navy) 0%, var(--lex-members-navy-dark) 100%) !important;
+}
+
+/* Progress: active step in gold */
+.lex-progress-step.active .lex-step-number {
+  background: var(--lex-members-gold) !important;
+  color: var(--lex-members-navy) !important;
+  box-shadow: 0 2px 8px rgba(201, 161, 74, 0.35) !important;
+}
+
+/* Subtitle accent bar */
+.lex-subtitle {
+  border-left: 3px solid var(--lex-members-gold) !important;
+}
+
+/* Form focus ring */
+.lex-form-group input:focus,
+.lex-form-group textarea:focus {
+  border-color: var(--lex-members-gold) !important;
+  box-shadow: 0 0 0 3px rgba(201, 161, 74, 0.18) !important;
+}
+
+/* Date & time selected state — navy fill with gold border for contrast */
+.lex-date-btn:hover,
+.lex-time-btn:hover {
+  border-color: var(--lex-members-gold) !important;
+  color: var(--lex-members-navy) !important;
+}
+
+.lex-date-btn.selected,
+.lex-time-btn.selected {
+  border-color: var(--lex-members-gold) !important;
+  background: var(--lex-members-navy) !important;
+  color: var(--lex-members-gold) !important;
+  box-shadow: 0 2px 8px rgba(14, 42, 74, 0.3) !important;
+}
+
+/* Primary button: striking gold gradient with navy text */
+.lex-btn-primary {
+  background: linear-gradient(135deg, var(--lex-members-gold) 0%, var(--lex-members-gold-dark) 100%) !important;
+  color: var(--lex-members-navy) !important;
+  box-shadow: 0 2px 10px rgba(201, 161, 74, 0.35) !important;
+  font-weight: 700 !important;
+}
+
+.lex-btn-primary:hover:not(:disabled) {
+  box-shadow: 0 6px 18px rgba(201, 161, 74, 0.45) !important;
+}
+
+/* Footer link accent */
+.lex-scheduler-footer a {
+  color: var(--lex-members-gold-dark) !important;
+}
