@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 const defaultServices = {
   hvac: {
@@ -127,6 +127,28 @@ export default function App({
       .finally(() => setLoadingSlots(false));
   }, [step, formData.issue]);
 
+  // ── Refs for auto-scroll ─────────────────────────────────────
+  const contentRef      = useRef(null);
+  const issueRef        = useRef(null);
+  const stepActionsRef  = useRef(null);
+
+  // Scroll content area to top when step changes
+  useEffect(() => {
+    if (contentRef.current) {
+      contentRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [step]);
+
+  // Scroll issue selection or actions into view after a service/issue pick
+  const scrollToBottom = useCallback(() => {
+    requestAnimationFrame(() => {
+      const target = stepActionsRef.current || issueRef.current;
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    });
+  }, []);
+
   const updateField = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
   const nextStep    = () => setStep(s => s + 1);
   const prevStep    = () => setStep(s => s - 1);
@@ -220,7 +242,7 @@ export default function App({
         </div>
 
         {/* Content */}
-        <div className="lex-scheduler-content">
+        <div className="lex-scheduler-content" ref={contentRef}>
 
           {/* Step 1 — Service selection */}
           {step === 1 && (
@@ -234,6 +256,7 @@ export default function App({
                       updateField('serviceType', key);
                       // Auto-select the sole issue when a service has exactly one
                       updateField('issue', service.issues.length === 1 ? service.issues[0].id : '');
+                      if (service.issues.length > 1) scrollToBottom();
                     }}
                     className={`lex-service-card ${formData.serviceType === key ? 'selected' : ''}`}
                     style={{ '--service-color': service.color }}
@@ -245,13 +268,13 @@ export default function App({
               </div>
 
               {selectedService && selectedService.issues.length > 1 && (
-                <div className="lex-issue-selection">
+                <div className="lex-issue-selection" ref={issueRef}>
                   <h4>{selectedService.issueHeading || "What's the issue?"}</h4>
                   <div className="lex-issue-grid">
                     {selectedService.issues.map(issue => (
                       <button
                         key={issue.id}
-                        onClick={() => updateField('issue', issue.id)}
+                        onClick={() => { updateField('issue', issue.id); scrollToBottom(); }}
                         className={`lex-issue-btn ${formData.issue === issue.id ? 'selected' : ''}`}
                         style={{ '--service-color': selectedService.color }}
                       >
@@ -273,7 +296,7 @@ export default function App({
                 </div>
               )}
 
-              <div className="lex-step-actions">
+              <div className="lex-step-actions" ref={stepActionsRef}>
                 <button className="lex-btn-primary" onClick={nextStep} disabled={!formData.issue}>Continue</button>
               </div>
             </div>
