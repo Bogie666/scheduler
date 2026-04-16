@@ -67,3 +67,40 @@
 .lex-scheduler-footer a {
   color: var(--lex-members-gold-dark) !important;
 }
+
+/* Service grid: 2x2 layout for 4 member services */
+.lex-scheduler-overlay .lex-service-grid,
+.lex-service-grid {
+  grid-template-columns: repeat(2, 1fr) !important;
+}
+
+.lex-service-card {
+  padding: 28px 16px !important;
+}
+
+.lex-service-icon {
+  font-size: 38px !important;
+}
+
+.lex-service-name {
+  font-size: 15px !important;
+}
+
+@media (max-width: 540px) {
+  .lex-scheduler-overlay .lex-service-grid,
+  .lex-service-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .lex-service-card {
+    padding: 22px 12px !important;
+  }
+
+  .lex-service-icon {
+    font-size: 32px !important;
+  }
+
+  .lex-service-name {
+    font-size: 13px !important;
+  }
+}
