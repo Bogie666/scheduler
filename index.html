@@ -98,6 +98,52 @@
       color: #94a3b8;
       font-size: 14px;
     }
+
+    .demo-divider {
+      max-width: 800px;
+      margin: 20px auto 0;
+      padding: 0 20px;
+    }
+
+    .demo-divider hr {
+      border: none;
+      border-top: 2px solid #C9A14A;
+      opacity: 0.4;
+    }
+
+    .members-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #C9A14A 0%, #A6822F 100%);
+      color: #0e2a4a;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .manual-trigger-gold {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: linear-gradient(135deg, #C9A14A 0%, #A6822F 100%);
+      color: #0e2a4a;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(201, 161, 74, 0.3);
+    }
+
+    .manual-trigger-gold:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(201, 161, 74, 0.45);
+    }
   </style>
 </head>
 <body>
@@ -190,19 +236,111 @@ LEXScheduler.toggle();</code>
     </div>
   </div>
 
+    <div class="demo-divider"><hr></div>
+
+    <div class="demo-content">
+      <div class="demo-section">
+        <span class="members-badge">Members</span>
+        <h2>🗓️ Members Scheduler</h2>
+        <p>
+          Exclusive scheduling for LEX membership plan holders. Seasonal tune-ups and inspections.
+          Click below to preview the members scheduler.
+        </p>
+        <button class="manual-trigger-gold" onclick="LEXMembersScheduler.open()">
+          Schedule Member Service
+        </button>
+      </div>
+
+      <div class="demo-section">
+        <span class="members-badge">Members</span>
+        <h2>📋 WordPress Installation</h2>
+        <p>
+          Embed code for your Members page:
+        </p>
+        <code>&lt;!-- LEX Members Scheduler Widget --&gt;
+&lt;link rel="stylesheet" href="https://scheduler-mu-three.vercel.app/lex-members-scheduler.css"&gt;
+&lt;script&gt;
+  window.LEXMembersSchedulerConfig = {
+    apiEndpoint: 'https://scheduler-mu-three.vercel.app/api/lex-booking',
+    autoButton: true,
+    buttonText: 'Schedule Member Service',
+    position: 'bottom-right'
+  };
+&lt;/script&gt;
+&lt;script src="https://scheduler-mu-three.vercel.app/lex-members-scheduler.iife.js"&gt;&lt;/script&gt;</code>
+      </div>
+
+      <div class="demo-section">
+        <span class="members-badge">Members</span>
+        <h2>⚙️ Configuration Options</h2>
+        <code>{
+  apiEndpoint: '/api/lex-booking',
+  autoButton: true,
+  buttonText: 'Schedule Member Service',
+  position: 'bottom-right',
+
+  // ----- Customization Options -----
+
+  // Custom logo URL (defaults to LEX logo if not set)
+  logoUrl: 'https://example.com/your-logo.png',
+
+  // Header background color (default: '#0e2a4a')
+  headerColor: '#0e2a4a',
+
+  // Floating button color (default: '#C9A14A')
+  buttonColor: '#C9A14A',
+
+  // Footer tagline text
+  tagline: 'Exclusive Service for LEX Members',
+
+  // Support phone number
+  phoneNumber: '(972) 466-1917',
+
+  // Header text
+  headerTitle: 'Member Scheduling',
+  headerSubtitle: 'Seasonal Tune-Ups • Inspections',
+
+  // Step 1 heading
+  step1Heading: 'Which service would you like to schedule?'
+}</code>
+      </div>
+
+      <div class="demo-section">
+        <span class="members-badge">Members</span>
+        <h2>🔧 Manual Control</h2>
+        <p>
+          You can programmatically control the members scheduler using JavaScript:
+        </p>
+        <code>// Open the members scheduler
+LEXMembersScheduler.open();
+
+// Close the members scheduler
+LEXMembersScheduler.close();
+
+// Toggle open/closed
+LEXMembersScheduler.toggle();</code>
+      </div>
+    </div>
+
   <div class="demo-footer">
     <p>LEX Air Conditioning • Serving the DFW Metroplex since 1970</p>
   </div>
 
-  <!-- Load the widget for development/preview -->
+  <!-- Load both widgets for development/preview -->
   <script type="module">
     import initLEXScheduler from './src/index.jsx';
-    
+    import initLEXMembersScheduler from './src/members-index.jsx';
+
     initLEXScheduler({
       apiEndpoint: '/api/lex-booking',
       autoButton: true,
       buttonText: 'Book Online',
       position: 'bottom-right'
+    });
+
+    initLEXMembersScheduler({
+      apiEndpoint: '/api/lex-booking',
+      autoButton: false,
     });
   </script>
 </body>
