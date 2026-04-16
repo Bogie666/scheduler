@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const services = {
+const defaultServices = {
   hvac: {
     name: 'Heating & Cooling',
     icon: '❄️',
@@ -42,13 +42,28 @@ const services = {
   }
 };
 
-const timeSlots = [
+const defaultTimeSlots = [
   { id: 'morning',         label: 'Morning',         time: '8am - 12pm' },
   { id: 'afternoon',       label: 'Afternoon',        time: '12pm - 5pm' },
   { id: 'first-available', label: 'First Available',  time: 'ASAP'       },
 ];
 
-export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, logoUrl, headerColor, tagline, phoneNumber }) {
+export default function App({
+  onClose,
+  apiEndpoint: apiEndpointProp,
+  baseUrl,
+  logoUrl,
+  headerColor,
+  tagline,
+  phoneNumber,
+  services: servicesProp,
+  timeSlots: timeSlotsProp,
+  headerTitle,
+  headerSubtitle,
+  step1Heading,
+}) {
+  const services = servicesProp || defaultServices;
+  const timeSlots = timeSlotsProp || defaultTimeSlots;
   const [isOpen,        setIsOpen]        = useState(true);
   const [step,          setStep]          = useState(1);
   const [isSubmitting,  setIsSubmitting]  = useState(false);
@@ -184,8 +199,8 @@ export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, lo
               <img src={logoUrl} alt="Logo" className="lex-header-logo" />
             ) : (
               <div>
-                <div style={{ color: 'white', fontSize: '20px', fontWeight: 700 }}>Schedule Service</div>
-                <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: '13px', marginTop: '2px' }}>LEX Air Conditioning &bull; Plumbing &bull; Electrical</div>
+                <div style={{ color: 'white', fontSize: '20px', fontWeight: 700 }}>{headerTitle || 'Schedule Service'}</div>
+                <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: '13px', marginTop: '2px' }}>{headerSubtitle || 'LEX Air Conditioning \u2022 Plumbing \u2022 Electrical'}</div>
               </div>
             )}
           </div>
@@ -208,12 +223,19 @@ export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, lo
           {/* Step 1 — Service selection */}
           {step === 1 && (
             <div className="lex-step-content">
-              <h3>What do you need help with?</h3>
-              <div className="lex-service-grid">
+              <h3>{step1Heading || 'What do you need help with?'}</h3>
+              <div
+                className="lex-service-grid"
+                style={Object.keys(services).length !== 3 ? { gridTemplateColumns: `repeat(${Math.min(Object.keys(services).length, 4)}, 1fr)` } : undefined}
+              >
                 {Object.entries(services).map(([key, service]) => (
                   <button
                     key={key}
-                    onClick={() => { updateField('serviceType', key); updateField('issue', ''); }}
+                    onClick={() => {
+                      updateField('serviceType', key);
+                      // Auto-select the sole issue when a service has exactly one
+                      updateField('issue', service.issues.length === 1 ? service.issues[0].id : '');
+                    }}
                     className={`lex-service-card ${formData.serviceType === key ? 'selected' : ''}`}
                     style={{ '--service-color': service.color }}
                   >
@@ -223,7 +245,7 @@ export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, lo
                 ))}
               </div>
 
-              {selectedService && (
+              {selectedService && selectedService.issues.length > 1 && (
                 <div className="lex-issue-selection">
                   <h4>What's the issue?</h4>
                   <div className="lex-issue-grid">
@@ -263,7 +285,10 @@ export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, lo
             <div className="lex-step-content">
               <h3>Tell us more about the problem</h3>
               <p className="lex-subtitle">
-                {selectedService?.name} &rarr; {selectedService?.issues.find(i => i.id === formData.issue)?.label}
+                {selectedService?.name}
+                {selectedService && selectedService.issues.length > 1 && (
+                  <> &rarr; {selectedService.issues.find(i => i.id === formData.issue)?.label}</>
+                )}
               </p>
               <div className="lex-form-group">
                 <label>Additional details (optional)</label>
@@ -448,7 +473,9 @@ export default function App({ onClose, apiEndpoint: apiEndpointProp, baseUrl, lo
               <div className="lex-confirmation-summary">
                 {[
                   ['Service',        selectedService?.name],
-                  ['Issue',          selectedService?.issues.find(i => i.id === formData.issue)?.label],
+                  ['Issue',          selectedService && selectedService.issues.length > 1
+                                       ? selectedService.issues.find(i => i.id === formData.issue)?.label
+                                       : null],
                   ['Preferred Date', formData.preferredDate && new Date(formData.preferredDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })],
                   ['Preferred Time', timeSlots.find(t => t.id === formData.preferredTime)?.label],
                   ...(formData.referralCode ? [['Referral Code', formData.referralCode]] : []),

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LEX Members Scheduler - Preview</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0e2a4a 0%, #133865 50%, #0e2a4a 100%);
+    }
+
+    .demo-header {
+      background: transparent;
+      color: white;
+      padding: 60px 20px;
+      text-align: center;
+    }
+
+    .demo-header h1 {
+      margin: 0 0 6px;
+      font-size: 42px;
+      font-weight: 700;
+      color: #C9A14A;
+    }
+
+    .demo-header p {
+      margin: 0;
+      font-size: 18px;
+      opacity: 0.85;
+    }
+
+    .demo-content {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px 60px;
+    }
+
+    .demo-section {
+      background: rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(201, 161, 74, 0.25);
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 24px;
+      color: white;
+    }
+
+    .demo-section h2 {
+      margin: 0 0 16px;
+      font-size: 20px;
+      color: #C9A14A;
+    }
+
+    .demo-section p {
+      color: rgba(255, 255, 255, 0.8);
+      line-height: 1.7;
+      margin: 0 0 16px;
+    }
+
+    .demo-section code {
+      display: block;
+      background: rgba(0, 0, 0, 0.4);
+      color: #e2e8f0;
+      padding: 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .manual-trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      background: linear-gradient(135deg, #C9A14A 0%, #A6822F 100%);
+      color: #0e2a4a;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 16px rgba(201, 161, 74, 0.35);
+    }
+
+    .manual-trigger:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(201, 161, 74, 0.5);
+    }
+
+    .demo-footer {
+      text-align: center;
+      padding: 40px 20px;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-header">
+    <h1>LEX Members</h1>
+    <p>Exclusive Scheduling for LEX Membership Plan Holders</p>
+  </div>
+
+  <div class="demo-content">
+    <div class="demo-section">
+      <h2>Schedule Your Member Service</h2>
+      <p>
+        As a LEX member you have access to seasonal tune-ups and inspections.
+        Click the floating button in the bottom-right corner, or use the button below.
+      </p>
+      <button class="manual-trigger" onclick="LEXMembersScheduler.open()">
+        Schedule Member Service
+      </button>
+    </div>
+
+    <div class="demo-section">
+      <h2>WordPress Installation</h2>
+      <p>
+        Embed code for your Members page:
+      </p>
+      <code>&lt;!-- LEX Members Scheduler Widget --&gt;
+&lt;link rel="stylesheet" href="https://scheduler-mu-three.vercel.app/lex-members-scheduler.css"&gt;
+&lt;script&gt;
+  window.LEXMembersSchedulerConfig = {
+    apiEndpoint: 'https://scheduler-mu-three.vercel.app/api/lex-booking',
+    autoButton: true,
+    buttonText: 'Schedule Member Service',
+    position: 'bottom-right'
+  };
+&lt;/script&gt;
+&lt;script src="https://scheduler-mu-three.vercel.app/lex-members-scheduler.iife.js"&gt;&lt;/script&gt;</code>
+    </div>
+
+    <div class="demo-section">
+      <h2>Configuration Options</h2>
+      <code>{
+  apiEndpoint: '/api/lex-booking',
+  autoButton: true,
+  buttonText: 'Schedule Member Service',
+  position: 'bottom-right',
+
+  // All the same customization options as the main scheduler:
+  logoUrl: 'https://example.com/your-logo.png',
+  headerColor: '#0e2a4a',
+  buttonColor: '#C9A14A',
+  tagline: 'Exclusive Service for LEX Members',
+  phoneNumber: '(972) 466-1917',
+
+  // Members-specific defaults (can override):
+  headerTitle: 'Member Scheduling',
+  headerSubtitle: 'Seasonal Tune-Ups • Inspections',
+  step1Heading: 'Which service would you like to schedule?',
+}</code>
+    </div>
+
+    <div class="demo-section">
+      <h2>Manual Control</h2>
+      <code>// Open the members scheduler
+LEXMembersScheduler.open();
+
+// Close it
+LEXMembersScheduler.close();
+
+// Toggle
+LEXMembersScheduler.toggle();</code>
+    </div>
+  </div>
+
+  <div class="demo-footer">
+    <p>LEX Air Conditioning &bull; Members Program</p>
+  </div>
+
+  <!-- Load the members widget for development/preview -->
+  <script type="module">
+    import initLEXMembersScheduler from './src/members-index.jsx';
+
+    initLEXMembersScheduler({
+      apiEndpoint: '/api/lex-booking',
+      autoButton: true,
+      buttonText: 'Schedule Member Service',
+      position: 'bottom-right',
+    });
+  </script>
+</body>
+</html>
