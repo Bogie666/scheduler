@@ -7,21 +7,30 @@ import './MembersSchedulerWidget.css';
 const NAVY = '#0e2a4a';
 const GOLD = '#C9A14A';
 
-// Default service options for the members scheduler.
-// Each service has a single pre-selected "issue" so the widget's
-// issue-selection step collapses into a single click in step 1.
+// HVAC system-count options shared by Spring and Fall tune-ups.
+const hvacSystemIssues = [
+  { id: 'members-hvac-1-system', label: '1 System' },
+  { id: 'members-hvac-2-system', label: '2 Systems' },
+  { id: 'members-hvac-3-system', label: '3 Systems' },
+  { id: 'members-hvac-4-system', label: '4 Systems' },
+  { id: 'members-hvac-5-system', label: '5 Systems' },
+  { id: 'members-hvac-6-system', label: '6+ Systems' },
+];
+
 const memberServices = {
   'spring-tune-up': {
     name: 'Spring Tune-Up',
     icon: '☀️',
     color: GOLD,
-    issues: [{ id: 'members-spring-tune-up', label: 'Schedule Spring Tune-Up' }],
+    issueHeading: 'How many systems do you have?',
+    issues: hvacSystemIssues,
   },
   'fall-tune-up': {
     name: 'Fall Tune-Up',
     icon: '🍂',
     color: GOLD,
-    issues: [{ id: 'members-fall-tune-up', label: 'Schedule Fall Tune-Up' }],
+    issueHeading: 'How many systems do you have?',
+    issues: hvacSystemIssues,
   },
   'plumbing-inspection': {
     name: 'Plumbing Inspection',

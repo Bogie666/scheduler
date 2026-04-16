@@ -244,7 +244,7 @@ export default function App({
 
               {selectedService && selectedService.issues.length > 1 && (
                 <div className="lex-issue-selection">
-                  <h4>What's the issue?</h4>
+                  <h4>{selectedService.issueHeading || "What's the issue?"}</h4>
                   <div className="lex-issue-grid">
                     {selectedService.issues.map(issue => (
                       <button
