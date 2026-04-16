@@ -81,6 +81,8 @@ function initLEXMembersScheduler(config = {}) {
     headerTitle = 'Member Scheduling',
     headerSubtitle = 'Seasonal Tune-Ups • Inspections',
     step1Heading = 'Which service would you like to schedule?',
+    step2Heading = 'Anything else we should know?',
+    step2Placeholder = "Do you have any areas of concern you'd like your technician to pay extra attention to?",
     services = memberServices,
     timeSlots,
   } = config;
@@ -113,6 +115,8 @@ function initLEXMembersScheduler(config = {}) {
         headerTitle={headerTitle}
         headerSubtitle={headerSubtitle}
         step1Heading={step1Heading}
+        step2Heading={step2Heading}
+        step2Placeholder={step2Placeholder}
       />
     );
     document.documentElement.style.overflow = 'hidden';
