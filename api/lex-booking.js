@@ -62,6 +62,16 @@ const SERVICE_LABELS = {
   'panel-upgrade':      'Panel Upgrade',
   'ceiling-fan':        'Ceiling Fan Install',
   'electrical-other':   'Electrical - Other',
+  // Members: HVAC Tune-Ups
+  'members-hvac-1-system': 'HVAC Maintenance - 1 System',
+  'members-hvac-2-system': 'HVAC Maintenance - 2 Systems',
+  'members-hvac-3-system': 'HVAC Maintenance - 3 Systems',
+  'members-hvac-4-system': 'HVAC Maintenance - 4 Systems',
+  'members-hvac-5-system': 'HVAC Maintenance - 5 Systems',
+  'members-hvac-6-system': 'HVAC Maintenance - 6+ Systems',
+  // Members: Inspections
+  'members-plumbing-inspection':   'Plumbing Inspection',
+  'members-electrical-inspection': 'Electrical Inspection',
 };
 
 // ── Main handler ──────────────────────────────────────────────

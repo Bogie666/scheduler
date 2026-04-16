@@ -50,6 +50,16 @@ const JOB_TYPE_MAP = {
   'panel-upgrade':      { jobTypeId: 462,    businessUnitId: 161649734 },
   'ceiling-fan':        { jobTypeId: 509,    businessUnitId: 161649734 },
   'electrical-other':   { jobTypeId: 509,    businessUnitId: 161649734 },
+  // ── Members: HVAC Tune-Ups (by system count) ─────────────
+  'members-hvac-1-system': { jobTypeId: 528,       businessUnitId: 7831 },
+  'members-hvac-2-system': { jobTypeId: 161649782, businessUnitId: 7831 },
+  'members-hvac-3-system': { jobTypeId: 161649821, businessUnitId: 7831 },
+  'members-hvac-4-system': { jobTypeId: 161649788, businessUnitId: 7831 },
+  'members-hvac-5-system': { jobTypeId: 1753588,   businessUnitId: 7831 },
+  'members-hvac-6-system': { jobTypeId: 495,       businessUnitId: 7831 },
+  // ── Members: Inspections ──────────────────────────────────
+  'members-plumbing-inspection':   { jobTypeId: 148475761, businessUnitId: 124467371 },
+  'members-electrical-inspection': { jobTypeId: 509,       businessUnitId: 161649734 },
 };
 
 // ── Token cache ──────────────────────────────────────────────
