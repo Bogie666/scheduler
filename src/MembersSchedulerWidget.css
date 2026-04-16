@@ -68,22 +68,70 @@
   color: var(--lex-members-gold-dark) !important;
 }
 
+/* ── Compact layout — reduce spacing so steps fit in one view ── */
+
+.lex-scheduler-header {
+  padding: 14px 24px !important;
+}
+
+.lex-progress-bar {
+  padding: 14px 24px !important;
+}
+
+.lex-step-content {
+  padding: 20px 24px !important;
+}
+
+.lex-step-content h3 {
+  font-size: 18px !important;
+  margin-bottom: 12px !important;
+}
+
+.lex-scheduler-footer {
+  padding: 10px 24px !important;
+}
+
+.lex-step-actions {
+  margin-top: 20px !important;
+  padding-top: 16px !important;
+}
+
+.lex-form-group {
+  margin-bottom: 14px !important;
+}
+
 /* Service grid: 2x2 layout for 4 member services */
 .lex-scheduler-overlay .lex-service-grid,
 .lex-service-grid {
   grid-template-columns: repeat(2, 1fr) !important;
+  gap: 10px !important;
+  margin-bottom: 16px !important;
 }
 
 .lex-service-card {
-  padding: 28px 16px !important;
+  padding: 18px 12px !important;
+  gap: 8px !important;
 }
 
 .lex-service-icon {
-  font-size: 38px !important;
+  font-size: 32px !important;
 }
 
 .lex-service-name {
-  font-size: 15px !important;
+  font-size: 14px !important;
+}
+
+/* Issue grid: 3 across for system count options */
+.lex-scheduler-overlay .lex-issue-grid,
+.lex-issue-grid {
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 8px !important;
+}
+
+.lex-issue-btn {
+  padding: 10px 12px !important;
+  text-align: center !important;
+  font-size: 13px !important;
 }
 
 @media (max-width: 540px) {
@@ -92,15 +140,20 @@
     grid-template-columns: repeat(2, 1fr) !important;
   }
 
+  .lex-scheduler-overlay .lex-issue-grid,
+  .lex-issue-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
   .lex-service-card {
-    padding: 22px 12px !important;
+    padding: 14px 8px !important;
   }
 
   .lex-service-icon {
-    font-size: 32px !important;
+    font-size: 26px !important;
   }
 
   .lex-service-name {
-    font-size: 13px !important;
+    font-size: 12px !important;
   }
 }
