@@ -44,12 +44,12 @@ const JOB_TYPE_MAP = {
   'toilet-issue':       { jobTypeId: 521,    businessUnitId: 124467371 },
   'plumbing-other':     { jobTypeId: 521,    businessUnitId: 124467371 },
   // ── Electrical ────────────────────────────────────────────
-  'outlet-not-working': { jobTypeId: 509,    businessUnitId: 161649734 },
-  'breaker-tripping':   { jobTypeId: 509,    businessUnitId: 161649734 },
-  'lighting-issue':     { jobTypeId: 509,    businessUnitId: 161649734 },
-  'panel-upgrade':      { jobTypeId: 462,    businessUnitId: 161649734 },
-  'ceiling-fan':        { jobTypeId: 509,    businessUnitId: 161649734 },
-  'electrical-other':   { jobTypeId: 509,    businessUnitId: 161649734 },
+  'outlet-not-working': { jobTypeId: 515,    businessUnitId: 161649734 },
+  'breaker-tripping':   { jobTypeId: 515,    businessUnitId: 161649734 },
+  'lighting-issue':     { jobTypeId: 515,    businessUnitId: 161649734 },
+  'panel-upgrade':      { jobTypeId: 515,    businessUnitId: 161649734 },
+  'ceiling-fan':        { jobTypeId: 515,    businessUnitId: 161649734 },
+  'electrical-other':   { jobTypeId: 515,    businessUnitId: 161649734 },
   // ── Members: HVAC Tune-Ups (by system count) ─────────────
   'members-hvac-1-system': { jobTypeId: 528,       businessUnitId: 7831 },
   'members-hvac-2-system': { jobTypeId: 161649782, businessUnitId: 7831 },
