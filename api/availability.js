@@ -58,8 +58,8 @@ const JOB_TYPE_MAP = {
   'members-hvac-5-system': { jobTypeId: 1753588,   businessUnitId: 7831 },
   'members-hvac-6-system': { jobTypeId: 495,       businessUnitId: 7831 },
   // ── Members: Inspections ──────────────────────────────────
-  'members-plumbing-inspection':   { jobTypeId: 148475761, businessUnitId: 124467371 },
-  'members-electrical-inspection': { jobTypeId: 509,       businessUnitId: 161649734 },
+  'members-plumbing-inspection':   { jobTypeId: 148475761, businessUnitId: 124468396 },
+  'members-electrical-inspection': { jobTypeId: 529,       businessUnitId: 455 },
 };
 
 // ── Token cache ──────────────────────────────────────────────
