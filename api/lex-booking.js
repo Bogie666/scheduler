@@ -187,7 +187,7 @@ async function createLocation(token, customerId, { firstName, lastName, address,
 
 // ── Step 3: Create unassigned job ────────────────────────────
 
-async function createJob(token, { customerId, locationId, businessUnitId, jobTypeId, summary, start, end }) {
+async function createJob(token, { customerId, locationId, businessUnitId, jobTypeId, summary, start, end, campaignId }) {
   const { data } = await axios.post(
     `${ST_API_BASE}/jpm/v2/tenant/${TENANT_ID}/jobs`,
     {
@@ -197,8 +197,14 @@ async function createJob(token, { customerId, locationId, businessUnitId, jobTyp
       jobTypeId,
       priority: 'Normal',
       summary,
-      start,
-      end,
+      body: summary,
+      campaignId: campaignId || 0,
+      appointments: [
+        {
+          start,
+          end,
+        },
+      ],
     },
     { headers: stHeaders(token) }
   );
