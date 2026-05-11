@@ -203,6 +203,8 @@ async function createJob(token, { customerId, locationId, businessUnitId, jobTyp
         {
           start,
           end,
+          arrivalWindowStart: start,
+          arrivalWindowEnd: end,
         },
       ],
     },
