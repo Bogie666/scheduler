@@ -126,8 +126,7 @@ module.exports = async function handler(req, res) {
         endsOnOrBefore,
         businessUnitId:        mapping.businessUnitId,
         jobTypeId:             mapping.jobTypeId,
-        skillBasedAvailability: false,
-        args:                  {},
+        skillBasedAvailability: true,
       },
       {
         headers: {
@@ -147,12 +146,15 @@ module.exports = async function handler(req, res) {
     //  4. Only return dates with availability > 0
     const availabilities = response.data?.availabilities || [];
     const targetBuId = mapping.businessUnitId;
+    const now = new Date();
 
     const dayMap = {};
     for (const window of availabilities) {
-      // Only count windows that include our business unit
       if (!window.businessUnitIds || !window.businessUnitIds.includes(targetBuId)) continue;
       if (!window.isAvailable) continue;
+
+      // Skip time windows that have already ended today
+      if (window.end && new Date(window.end) <= now) continue;
 
       const date = window.start?.split('T')[0];
       if (!date) continue;
