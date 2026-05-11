@@ -198,7 +198,7 @@ async function createJob(token, { customerId, locationId, businessUnitId, jobTyp
       priority: 'Normal',
       summary,
       body: summary,
-      campaignId: campaignId || 0,
+      campaignId: campaignId || 46472179,
       appointments: [
         {
           start,
