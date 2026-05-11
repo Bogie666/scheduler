@@ -279,38 +279,59 @@ module.exports = async function handler(req, res) {
     const tw = timeWindows[preferredTime] || timeWindows['first-available'];
 
     // ── 1. Find or create customer ───────────────────────────
-    let customer = await findCustomerByPhone(token, cleanPhone);
-    if (!customer) {
-      customer = await createCustomer(token, { firstName, lastName, phone: cleanPhone, email });
-      console.log(`[Booking] Created new customer ${customer.id} — ${firstName} ${lastName}`);
-    } else {
-      console.log(`[Booking] Found existing customer ${customer.id} — ${customer.name}`);
+    let customer;
+    try {
+      customer = await findCustomerByPhone(token, cleanPhone);
+      if (!customer) {
+        customer = await createCustomer(token, { firstName, lastName, phone: cleanPhone, email });
+        console.log(`[Booking] Created new customer ${customer.id} — ${firstName} ${lastName}`);
+      } else {
+        console.log(`[Booking] Found existing customer ${customer.id} — ${customer.name}`);
+      }
+    } catch (err) {
+      const detail = err.response?.data || err.message;
+      console.error('[Booking] Customer step failed:', detail);
+      return res.status(500).json({ error: 'customer_failed', step: 'customer', debug: detail,
+        message: 'We had trouble submitting your request. Please call us at (972) 466-1917.' });
     }
 
     // ── 2. Find or create location ───────────────────────────
-    let location = null;
-    const existingLocations = await getCustomerLocations(token, customer.id);
-    location = findMatchingLocation(existingLocations, address, zip);
-
-    if (!location) {
-      location = await createLocation(token, customer.id, { firstName, lastName, address, city, zip });
-      console.log(`[Booking] Created new location ${location.id} — ${address}, ${city} ${zip}`);
-    } else {
-      console.log(`[Booking] Using existing location ${location.id}`);
+    let location;
+    try {
+      const existingLocations = await getCustomerLocations(token, customer.id);
+      location = findMatchingLocation(existingLocations, address, zip);
+      if (!location) {
+        location = await createLocation(token, customer.id, { firstName, lastName, address, city, zip });
+        console.log(`[Booking] Created new location ${location.id} — ${address}, ${city} ${zip}`);
+      } else {
+        console.log(`[Booking] Using existing location ${location.id}`);
+      }
+    } catch (err) {
+      const detail = err.response?.data || err.message;
+      console.error('[Booking] Location step failed:', detail);
+      return res.status(500).json({ error: 'location_failed', step: 'location', debug: detail,
+        message: 'We had trouble submitting your request. Please call us at (972) 466-1917.' });
     }
 
     // ── 3. Create unassigned job ─────────────────────────────
-    const job = await createJob(token, {
-      customerId:     customer.id,
-      locationId:     location.id,
-      businessUnitId: mapping.businessUnitId,
-      jobTypeId:      mapping.jobTypeId,
-      summary,
-      start: `${preferredDate}T${tw.start}`,
-      end:   `${preferredDate}T${tw.end}`,
-    });
-
-    console.log(`[Booking] Created unassigned job ${job.id} for ${firstName} ${lastName} — ${issueLabel}`);
+    let job;
+    try {
+      job = await createJob(token, {
+        customerId:     customer.id,
+        locationId:     location.id,
+        businessUnitId: mapping.businessUnitId,
+        jobTypeId:      mapping.jobTypeId,
+        summary,
+        start: `${preferredDate}T${tw.start}`,
+        end:   `${preferredDate}T${tw.end}`,
+      });
+      console.log(`[Booking] Created unassigned job ${job.id} for ${firstName} ${lastName} — ${issueLabel}`);
+    } catch (err) {
+      const detail = err.response?.data || err.message;
+      console.error('[Booking] Job creation failed:', detail);
+      return res.status(500).json({ error: 'job_failed', step: 'job', debug: detail,
+        message: 'We had trouble submitting your request. Please call us at (972) 466-1917.' });
+    }
 
     // ── 4. PATCH referral code if provided ───────────────────
     if (referralCode) {
@@ -336,6 +357,8 @@ module.exports = async function handler(req, res) {
 
     return res.status(500).json({
       error:   'booking_failed',
+      step:    'auth_or_unknown',
+      debug:   stError,
       message: 'We had trouble submitting your request. Please call us at (972) 466-1917.',
     });
   }
