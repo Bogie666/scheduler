@@ -66,6 +66,27 @@ export default function App({
 }) {
   const services = servicesProp || defaultServices;
   const timeSlots = timeSlotsProp || defaultTimeSlots;
+
+  // ── Funnel tracking beacon (fire-and-forget) ───────────────
+  const beaconFunnel = useCallback((type, extras = {}) => {
+    const cfg = window.LEXSchedulerConfig || window.LEXMembersSchedulerConfig || {};
+    const url = cfg.funnelEndpoint || 'https://lexperks.com/api/funnel/event';
+    const payload = {
+      type,
+      code:       cfg.referralCode || cfg.referralSlug || undefined,
+      session_id: cfg.sessionId || undefined,
+      metadata:   Object.keys(extras).length ? extras : undefined,
+    };
+    try {
+      fetch(url, {
+        method:    'POST',
+        headers:   { 'Content-Type': 'application/json' },
+        keepalive: true,
+        body:      JSON.stringify(payload),
+      }).catch(() => {});
+    } catch (e) {}
+  }, []);
+
   const [isOpen,        setIsOpen]        = useState(true);
   const [step,          setStep]          = useState(1);
   const [isSubmitting,  setIsSubmitting]  = useState(false);
@@ -106,9 +127,8 @@ export default function App({
         setFormData(prev => ({ ...prev, referralCode: cleaned }));
         setReferralCodeSource('url');
       }
-    } catch (e) {
-      // URL parsing can fail in some embed contexts — ignore
-    }
+    } catch (e) {}
+    beaconFunnel('scheduler_opened');
   }, []);
 
   // ── Fetch live availability when reaching Step 4 ────────────
@@ -183,11 +203,13 @@ export default function App({
         body:    JSON.stringify(payload),
       });
 
+      const result = await response.json().catch(() => ({}));
+
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.message || `Request failed (${response.status})`);
+        throw new Error(result.message || `Request failed (${response.status})`);
       }
 
+      beaconFunnel('booking_confirmed', { st_job_id: result.jobId || undefined });
       setSubmitSuccess(true);
       setStep(5);
 
@@ -400,7 +422,7 @@ export default function App({
                 <button className="lex-btn-secondary" onClick={prevStep}>Back</button>
                 <button
                   className="lex-btn-primary"
-                  onClick={nextStep}
+                  onClick={() => { beaconFunnel('customer_info_submitted'); nextStep(); }}
                   disabled={!formData.firstName || !formData.lastName || !formData.phone || !formData.address || !formData.city || !formData.zip}
                 >
                   Continue
@@ -451,7 +473,7 @@ export default function App({
                   {timeSlots.map(slot => (
                     <button
                       key={slot.id}
-                      onClick={() => updateField('preferredTime', slot.id)}
+                      onClick={() => { updateField('preferredTime', slot.id); beaconFunnel('slot_selected', { slot_id: slot.id }); }}
                       className={`lex-time-btn ${formData.preferredTime === slot.id ? 'selected' : ''}`}
                     >
                       <span className="lex-time-label">{slot.label}</span>
