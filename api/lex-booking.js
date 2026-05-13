@@ -275,8 +275,11 @@ module.exports = async function handler(req, res) {
     if (issueDetails) summary += ` — ${issueDetails}`;
     summary += ` | Preferred: ${preferredDate} ${timeLabel}`;
     if (referralCode) {
-      summary += ` | REFERRAL CODE: ${referralCode} *** $50 Off $350+ ***`;
+      summary += ` | *** $50 Off $350+ ***`;
     }
+
+    // Campaign: LexPerks Referral if referral code present, otherwise Lex Website
+    const jobCampaignId = referralCode ? 421949222 : 46472179;
 
     // ── Time window ──────────────────────────────────────────
     const timeWindows = {
@@ -332,6 +335,7 @@ module.exports = async function handler(req, res) {
         summary,
         start: `${preferredDate}T${tw.start}`,
         end:   `${preferredDate}T${tw.end}`,
+        campaignId:     jobCampaignId,
       });
       console.log(`[Booking] Created unassigned job ${job.id} for ${firstName} ${lastName} — ${issueLabel}`);
     } catch (err) {
