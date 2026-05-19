@@ -1,17 +1,28 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 const defaultServices = {
-  hvac: {
-    name: 'Heating & Cooling',
+  cooling: {
+    name: 'Cooling',
     icon: '❄️',
     color: '#0077B6',
     issues: [
       { id: 'ac-not-cooling',      label: 'AC Not Cooling' },
+      { id: 'hvac-maintenance',    label: 'Maintenance / Tune-Up' },
+      { id: 'new-system',          label: 'New System Estimate' },
+      { id: 'strange-noises',      label: 'Strange Noises' },
+      { id: 'hvac-other',          label: 'Other AC Issue' },
+    ]
+  },
+  heating: {
+    name: 'Heating',
+    icon: '🔥',
+    color: '#E05A2B',
+    issues: [
       { id: 'heater-not-working',  label: 'Heater Not Working' },
       { id: 'hvac-maintenance',    label: 'Maintenance / Tune-Up' },
       { id: 'new-system',          label: 'New System Estimate' },
       { id: 'strange-noises',      label: 'Strange Noises' },
-      { id: 'hvac-other',          label: 'Other HVAC Issue' },
+      { id: 'hvac-other',          label: 'Other Heating Issue' },
     ]
   },
   plumbing: {
