@@ -109,6 +109,7 @@ module.exports = async function handler(req, res) {
     // ── 3. Check membership status ───────────────────────────
     let isMember = false;
     let membershipCount = 0;
+    let membershipDebug = null;
     try {
       const membershipRes = await axios.get(
         `${ST_API_BASE}/memberships/v2/tenant/${TENANT_ID}/memberships`,
@@ -120,9 +121,10 @@ module.exports = async function handler(req, res) {
       const memberships = membershipRes.data?.data || [];
       membershipCount = memberships.length;
       isMember = membershipCount > 0;
+      membershipDebug = memberships.map(m => ({ id: m.id, status: m.status, name: m.membershipType?.name || m.name }));
     } catch (memberErr) {
       console.error('[Members] Membership check failed:', memberErr.response?.data || memberErr.message);
-      // Don't assume membership — let the widget show the non-member screen
+      membershipDebug = { error: memberErr.response?.data || memberErr.message };
       isMember = false;
     }
 
@@ -140,6 +142,7 @@ module.exports = async function handler(req, res) {
       locations,
       isMember,
       membershipCount,
+      debug: { memberships: membershipDebug },
     });
 
   } catch (err) {
