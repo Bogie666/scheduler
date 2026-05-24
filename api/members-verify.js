@@ -107,48 +107,45 @@ module.exports = async function handler(req, res) {
     }));
 
     // ── 3. Check membership status ───────────────────────────
-    // The ST Memberships API ignores the customerId query param and
-    // returns all tenant memberships. We filter client-side by
-    // matching customerId or locationIds on each membership record.
+    // ST memberships are tied to locations. Check each of the
+    // customer's locations for active memberships.
     let isMember = false;
     let membershipCount = 0;
-    let membershipDebug = null;
-    const customerLocationIds = locations.map(l => l.id);
+    let membershipDebug = { locationChecks: [] };
+    let customerMemberships = [];
 
     try {
-      const membershipRes = await axios.get(
-        `${ST_API_BASE}/memberships/v2/tenant/${TENANT_ID}/memberships`,
-        {
-          params:  { status: 'Active', pageSize: 200 },
-          headers: stHeaders(token),
-        }
-      );
-      const allMemberships = membershipRes.data?.data || [];
-
-      // Filter to memberships that belong to this customer
-      const customerMemberships = allMemberships.filter(m => {
-        if (m.customerId === customer.id) return true;
-        if (m.locationId && customerLocationIds.includes(m.locationId)) return true;
-        return false;
-      });
+      for (const loc of locations) {
+        const membershipRes = await axios.get(
+          `${ST_API_BASE}/memberships/v2/tenant/${TENANT_ID}/memberships`,
+          {
+            params:  { locationId: loc.id, status: 'Active' },
+            headers: stHeaders(token),
+          }
+        );
+        const allReturned = membershipRes.data?.data || [];
+        // Double-check: filter to only those matching this location
+        const locMemberships = allReturned.filter(m => m.locationId === loc.id);
+        membershipDebug.locationChecks.push({
+          locationId: loc.id,
+          address: loc.address?.street,
+          returned: allReturned.length,
+          matched: locMemberships.length,
+          memberships: locMemberships.map(m => ({
+            id: m.id, status: m.status, locationId: m.locationId,
+            name: m.membershipType?.name || m.type?.name || m.name,
+          })),
+        });
+        customerMemberships.push(...locMemberships);
+      }
 
       membershipCount = customerMemberships.length;
       isMember = membershipCount > 0;
-      membershipDebug = {
-        totalActive: allMemberships.length,
-        customerMatches: customerMemberships.map(m => ({
-          id: m.id,
-          status: m.status,
-          customerId: m.customerId,
-          locationId: m.locationId,
-          name: m.membershipType?.name || m.name,
-        })),
-        customerIdChecked: customer.id,
-        locationIdsChecked: customerLocationIds,
-      };
+      membershipDebug.customerId = customer.id;
+      membershipDebug.totalMatched = membershipCount;
     } catch (memberErr) {
       console.error('[Members] Membership check failed:', memberErr.response?.data || memberErr.message);
-      membershipDebug = { error: memberErr.response?.data || memberErr.message };
+      membershipDebug.error = memberErr.response?.data || memberErr.message;
       isMember = false;
     }
 
