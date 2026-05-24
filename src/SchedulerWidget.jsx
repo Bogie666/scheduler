@@ -120,6 +120,7 @@ export default function App({
   const [verifiedCustomer, setVerifiedCustomer] = useState(null);
   const [memberLocations, setMemberLocations]   = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [verifyDebug, setVerifyDebug]           = useState(null);
 
   const isMemberVerified = memberMode && verifyPhase === 'done' && verifiedCustomer;
 
@@ -221,6 +222,7 @@ export default function App({
 
       setVerifiedCustomer(data.customer);
       setMemberLocations(data.locations || []);
+      setVerifyDebug({ isMember: data.isMember, membershipCount: data.membershipCount, memberships: data.debug?.memberships });
 
       if (!data.isMember) {
         setFormData(prev => ({
@@ -465,6 +467,11 @@ export default function App({
                 <h3>Welcome back, {verifiedCustomer?.firstName}!</h3>
                 <p>Which location needs service?</p>
               </div>
+              {verifyDebug && (
+                <div style={{ background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: '8px', padding: '10px 14px', fontSize: '11px', fontFamily: 'monospace', marginBottom: '12px', wordBreak: 'break-all', color: '#92400e' }}>
+                  DEBUG: {JSON.stringify(verifyDebug)}
+                </div>
+              )}
 
               <div className="lex-location-grid">
                 {memberLocations.map(loc => (
@@ -494,6 +501,11 @@ export default function App({
                 <h3>Hi {verifiedCustomer?.firstName}, thanks for being a customer!</h3>
                 <p>We couldn't find an active membership on your account.</p>
               </div>
+              {verifyDebug && (
+                <div style={{ background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: '8px', padding: '10px 14px', fontSize: '11px', fontFamily: 'monospace', marginBottom: '12px', wordBreak: 'break-all', color: '#92400e' }}>
+                  DEBUG: {JSON.stringify(verifyDebug)}
+                </div>
+              )}
 
               <div className="lex-not-member-actions">
                 <a href="tel:9724661917" className="lex-btn-secondary" style={{ textAlign: 'center', display: 'block', textDecoration: 'none' }}>
@@ -515,6 +527,11 @@ export default function App({
                   {selectedLocation && (
                     <span className="lex-member-banner-loc"> — {selectedLocation.address?.street}</span>
                   )}
+                </div>
+              )}
+              {verifyDebug && (
+                <div style={{ background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: '8px', padding: '10px 14px', fontSize: '11px', fontFamily: 'monospace', marginBottom: '12px', wordBreak: 'break-all', color: '#92400e' }}>
+                  DEBUG: {JSON.stringify(verifyDebug)}
                 </div>
               )}
               <h3>{step1Heading || 'What do you need help with?'}</h3>
