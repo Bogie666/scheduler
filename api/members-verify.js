@@ -121,9 +121,9 @@ module.exports = async function handler(req, res) {
       membershipCount = memberships.length;
       isMember = membershipCount > 0;
     } catch (memberErr) {
-      // Membership API might not be available or scoped — allow through
       console.error('[Members] Membership check failed:', memberErr.response?.data || memberErr.message);
-      isMember = true;
+      // Don't assume membership — let the widget show the non-member screen
+      isMember = false;
     }
 
     console.log(`[Members] Verified customer ${customer.id} — ${customer.name} — member: ${isMember} (${membershipCount} active)`);

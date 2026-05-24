@@ -77,7 +77,8 @@ export default function App({
   memberMode,
   verifyEndpoint,
 }) {
-  const services = servicesProp || defaultServices;
+  const [useDefaultServices, setUseDefaultServices] = useState(false);
+  const services = useDefaultServices ? defaultServices : (servicesProp || defaultServices);
   const timeSlots = timeSlotsProp || defaultTimeSlots;
 
   // ── Funnel tracking beacon (fire-and-forget) ───────────────
@@ -218,13 +219,20 @@ export default function App({
         return;
       }
 
-      if (!data.isMember) {
-        setVerifyError('No active membership found for this account. Please call (972) 466-1917 to sign up.');
-        return;
-      }
-
       setVerifiedCustomer(data.customer);
       setMemberLocations(data.locations || []);
+
+      if (!data.isMember) {
+        setFormData(prev => ({
+          ...prev,
+          firstName: data.customer.firstName,
+          lastName:  data.customer.lastName,
+          phone:     data.customer.phone,
+          email:     data.customer.email,
+        }));
+        setVerifyPhase('not-member');
+        return;
+      }
 
       if (data.locations.length === 1) {
         const loc = data.locations[0];
@@ -282,6 +290,27 @@ export default function App({
     setVerifyPhase('done');
     setVerifiedCustomer(null);
     setSelectedLocation(null);
+    setUseDefaultServices(false);
+  };
+
+  const handleContinueAsNonMember = () => {
+    setUseDefaultServices(true);
+    if (memberLocations.length === 1) {
+      const loc = memberLocations[0];
+      setSelectedLocation(loc);
+      setFormData(prev => ({
+        ...prev,
+        address: loc.address?.street || '',
+        city:    loc.address?.city || '',
+        zip:     loc.address?.zip || '',
+      }));
+      setVerifyPhase('done');
+    } else if (memberLocations.length > 1) {
+      setVerifyPhase('location');
+    } else {
+      setVerifiedCustomer(null);
+      setVerifyPhase('done');
+    }
   };
 
   // ── Submit booking ──────────��─────────────────────────────────
@@ -453,6 +482,26 @@ export default function App({
                     </div>
                   </button>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Member verification — Not a member */}
+          {verifyPhase === 'not-member' && (
+            <div className="lex-step-content lex-verify-content">
+              <div className="lex-verify-welcome">
+                <div className="lex-verify-icon" style={{ background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)', color: '#64748b' }}>👤</div>
+                <h3>Hi {verifiedCustomer?.firstName}, thanks for being a customer!</h3>
+                <p>We couldn't find an active membership on your account.</p>
+              </div>
+
+              <div className="lex-not-member-actions">
+                <a href="tel:9724661917" className="lex-btn-secondary" style={{ textAlign: 'center', display: 'block', textDecoration: 'none' }}>
+                  Call (972) 466-1917 if this is a mistake
+                </a>
+                <button className="lex-btn-primary" onClick={handleContinueAsNonMember}>
+                  Continue Booking Anyway
+                </button>
               </div>
             </div>
           )}
