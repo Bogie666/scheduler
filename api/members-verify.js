@@ -163,7 +163,6 @@ module.exports = async function handler(req, res) {
       locations,
       isMember,
       membershipCount,
-      debug: { memberships: membershipDebug },
     });
 
   } catch (err) {
