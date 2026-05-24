@@ -107,21 +107,45 @@ module.exports = async function handler(req, res) {
     }));
 
     // ── 3. Check membership status ───────────────────────────
+    // The ST Memberships API ignores the customerId query param and
+    // returns all tenant memberships. We filter client-side by
+    // matching customerId or locationIds on each membership record.
     let isMember = false;
     let membershipCount = 0;
     let membershipDebug = null;
+    const customerLocationIds = locations.map(l => l.id);
+
     try {
       const membershipRes = await axios.get(
         `${ST_API_BASE}/memberships/v2/tenant/${TENANT_ID}/memberships`,
         {
-          params:  { customerId: customer.id, status: 'Active' },
+          params:  { status: 'Active', pageSize: 200 },
           headers: stHeaders(token),
         }
       );
-      const memberships = membershipRes.data?.data || [];
-      membershipCount = memberships.length;
+      const allMemberships = membershipRes.data?.data || [];
+
+      // Filter to memberships that belong to this customer
+      const customerMemberships = allMemberships.filter(m => {
+        if (m.customerId === customer.id) return true;
+        if (m.locationId && customerLocationIds.includes(m.locationId)) return true;
+        return false;
+      });
+
+      membershipCount = customerMemberships.length;
       isMember = membershipCount > 0;
-      membershipDebug = memberships.map(m => ({ id: m.id, status: m.status, name: m.membershipType?.name || m.name }));
+      membershipDebug = {
+        totalActive: allMemberships.length,
+        customerMatches: customerMemberships.map(m => ({
+          id: m.id,
+          status: m.status,
+          customerId: m.customerId,
+          locationId: m.locationId,
+          name: m.membershipType?.name || m.name,
+        })),
+        customerIdChecked: customer.id,
+        locationIdsChecked: customerLocationIds,
+      };
     } catch (memberErr) {
       console.error('[Members] Membership check failed:', memberErr.response?.data || memberErr.message);
       membershipDebug = { error: memberErr.response?.data || memberErr.message };
