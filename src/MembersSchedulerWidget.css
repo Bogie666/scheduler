@@ -163,6 +163,13 @@
   color: #64748b !important;
 }
 
+.lex-not-member-actions {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  margin-top: 24px !important;
+}
+
 .lex-member-banner {
   background: linear-gradient(135deg, var(--lex-members-gold-soft) 0%, #fff9e6 100%) !important;
   border: 1px solid var(--lex-members-gold) !important;
