@@ -68,6 +68,122 @@
   color: var(--lex-members-gold-dark) !important;
 }
 
+/* ── Member verification UI ──────────────────────────────────── */
+
+.lex-verify-welcome {
+  text-align: center !important;
+  margin-bottom: 24px !important;
+}
+
+.lex-verify-icon {
+  width: 56px !important;
+  height: 56px !important;
+  background: linear-gradient(135deg, var(--lex-members-gold) 0%, var(--lex-members-gold-dark) 100%) !important;
+  color: var(--lex-members-navy) !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 24px !important;
+  margin: 0 auto 16px !important;
+  box-shadow: 0 4px 16px rgba(201, 161, 74, 0.3) !important;
+}
+
+.lex-verify-welcome h3 {
+  margin-bottom: 4px !important;
+}
+
+.lex-verify-welcome p {
+  color: #64748b !important;
+  font-size: 15px !important;
+  margin: 0 !important;
+}
+
+.lex-guest-link {
+  text-align: center !important;
+  font-size: 13px !important;
+  color: #94a3b8 !important;
+  margin-top: 16px !important;
+}
+
+.lex-guest-link a {
+  color: var(--lex-members-gold-dark) !important;
+  font-weight: 600 !important;
+  text-decoration: underline !important;
+  cursor: pointer !important;
+}
+
+.lex-location-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+.lex-location-card {
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  padding: 16px 20px !important;
+  background: #ffffff !important;
+  border: 2px solid #e2e8f0 !important;
+  border-radius: 10px !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  text-align: left !important;
+  width: 100% !important;
+  font-family: inherit !important;
+}
+
+.lex-location-card:hover {
+  border-color: var(--lex-members-gold) !important;
+  background: var(--lex-members-gold-soft) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(201, 161, 74, 0.2) !important;
+}
+
+.lex-location-pin {
+  font-size: 22px !important;
+  flex-shrink: 0 !important;
+}
+
+.lex-location-details {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+
+.lex-location-street {
+  font-weight: 600 !important;
+  font-size: 15px !important;
+  color: #0f172a !important;
+}
+
+.lex-location-city {
+  font-size: 13px !important;
+  color: #64748b !important;
+}
+
+.lex-member-banner {
+  background: linear-gradient(135deg, var(--lex-members-gold-soft) 0%, #fff9e6 100%) !important;
+  border: 1px solid var(--lex-members-gold) !important;
+  border-radius: 8px !important;
+  padding: 10px 16px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: var(--lex-members-navy) !important;
+  margin-bottom: 16px !important;
+}
+
+.lex-member-banner span:first-child {
+  color: #10b981 !important;
+  margin-right: 4px !important;
+}
+
+.lex-member-banner-loc {
+  font-weight: 400 !important;
+  color: #64748b !important;
+}
+
 /* ── Compact layout — reduce spacing so steps fit in one view ── */
 
 .lex-scheduler-header {

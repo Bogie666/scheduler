@@ -250,6 +250,8 @@ module.exports = async function handler(req, res) {
     preferredDate,
     preferredTime,
     referralCode,
+    customerId: preVerifiedCustomerId,
+    locationId: preVerifiedLocationId,
   } = req.body || {};
 
   if (!firstName || !lastName || !phone || !address || !city || !zip) {
@@ -291,37 +293,47 @@ module.exports = async function handler(req, res) {
 
     // ── 1. Find or create customer ───────────────────────────
     let customer;
-    try {
-      customer = await findCustomerByPhone(token, cleanPhone);
-      if (!customer) {
-        customer = await createCustomer(token, { firstName, lastName, phone: cleanPhone, email });
-        console.log(`[Booking] Created new customer ${customer.id} — ${firstName} ${lastName}`);
-      } else {
-        console.log(`[Booking] Found existing customer ${customer.id} — ${customer.name}`);
+    if (preVerifiedCustomerId) {
+      customer = { id: preVerifiedCustomerId };
+      console.log(`[Booking] Using pre-verified customer ${customer.id}`);
+    } else {
+      try {
+        customer = await findCustomerByPhone(token, cleanPhone);
+        if (!customer) {
+          customer = await createCustomer(token, { firstName, lastName, phone: cleanPhone, email });
+          console.log(`[Booking] Created new customer ${customer.id} — ${firstName} ${lastName}`);
+        } else {
+          console.log(`[Booking] Found existing customer ${customer.id} — ${customer.name}`);
+        }
+      } catch (err) {
+        const detail = err.response?.data || err.message;
+        console.error('[Booking] Customer step failed:', detail);
+        return res.status(500).json({ error: 'customer_failed', step: 'customer', debug: detail,
+          message: 'We had trouble submitting your request. Please call us at (972) 466-1917.' });
       }
-    } catch (err) {
-      const detail = err.response?.data || err.message;
-      console.error('[Booking] Customer step failed:', detail);
-      return res.status(500).json({ error: 'customer_failed', step: 'customer', debug: detail,
-        message: 'We had trouble submitting your request. Please call us at (972) 466-1917.' });
     }
 
     // ── 2. Find or create location ───────────────────────────
     let location;
-    try {
-      const existingLocations = await getCustomerLocations(token, customer.id);
-      location = findMatchingLocation(existingLocations, address, zip);
-      if (!location) {
-        location = await createLocation(token, customer.id, { firstName, lastName, address, city, zip });
-        console.log(`[Booking] Created new location ${location.id} — ${address}, ${city} ${zip}`);
-      } else {
-        console.log(`[Booking] Using existing location ${location.id}`);
+    if (preVerifiedLocationId) {
+      location = { id: preVerifiedLocationId };
+      console.log(`[Booking] Using pre-verified location ${location.id}`);
+    } else {
+      try {
+        const existingLocations = await getCustomerLocations(token, customer.id);
+        location = findMatchingLocation(existingLocations, address, zip);
+        if (!location) {
+          location = await createLocation(token, customer.id, { firstName, lastName, address, city, zip });
+          console.log(`[Booking] Created new location ${location.id} — ${address}, ${city} ${zip}`);
+        } else {
+          console.log(`[Booking] Using existing location ${location.id}`);
+        }
+      } catch (err) {
+        const detail = err.response?.data || err.message;
+        console.error('[Booking] Location step failed:', detail);
+        return res.status(500).json({ error: 'location_failed', step: 'location', debug: detail,
+          message: 'We had trouble submitting your request. Please call us at (972) 466-1917.' });
       }
-    } catch (err) {
-      const detail = err.response?.data || err.message;
-      console.error('[Booking] Location step failed:', detail);
-      return res.status(500).json({ error: 'location_failed', step: 'location', debug: detail,
-        message: 'We had trouble submitting your request. Please call us at (972) 466-1917.' });
     }
 
     // ── 3. Create unassigned job ─────────────────────────────

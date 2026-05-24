@@ -74,6 +74,8 @@ export default function App({
   step1Heading,
   step2Heading,
   step2Placeholder,
+  memberMode,
+  verifyEndpoint,
 }) {
   const services = servicesProp || defaultServices;
   const timeSlots = timeSlotsProp || defaultTimeSlots;
@@ -109,7 +111,18 @@ export default function App({
   const [loadingSlots,   setLoadingSlots]   = useState(false);
   const [slotsError,     setSlotsError]     = useState(false);
 
-  // ── Referral code state ──────────���───────────────────────────
+  // ── Member verification state ───────────────────────────────
+  const [verifyPhase, setVerifyPhase]       = useState(memberMode ? 'phone' : 'done');
+  const [memberPhone, setMemberPhone]       = useState('');
+  const [verifyLoading, setVerifyLoading]   = useState(false);
+  const [verifyError, setVerifyError]       = useState('');
+  const [verifiedCustomer, setVerifiedCustomer] = useState(null);
+  const [memberLocations, setMemberLocations]   = useState([]);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+
+  const isMemberVerified = memberMode && verifyPhase === 'done' && verifiedCustomer;
+
+  // ── Referral code state ────────────────────────────────────
   const [referralCodeSource, setReferralCodeSource] = useState(null);
 
   const [formData, setFormData] = useState({
@@ -181,8 +194,95 @@ export default function App({
   }, []);
 
   const updateField = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
-  const nextStep    = () => setStep(s => s + 1);
-  const prevStep    = () => setStep(s => s - 1);
+  const nextStep    = () => setStep(s => isMemberVerified && s === 2 ? 4 : s + 1);
+  const prevStep    = () => setStep(s => isMemberVerified && s === 4 ? 2 : s - 1);
+
+  // ── Member phone verification ──────────────────────────────
+  const handleVerifyMember = async () => {
+    if (!memberPhone.trim()) return;
+    setVerifyLoading(true);
+    setVerifyError('');
+
+    try {
+      const endpoint = verifyEndpoint || 'https://scheduler-mu-three.vercel.app/api/members-verify';
+      const response = await fetch(endpoint, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ phone: memberPhone }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setVerifyError(data.message || 'Unable to verify membership.');
+        return;
+      }
+
+      if (!data.isMember) {
+        setVerifyError('No active membership found for this account. Please call (972) 466-1917 to sign up.');
+        return;
+      }
+
+      setVerifiedCustomer(data.customer);
+      setMemberLocations(data.locations || []);
+
+      if (data.locations.length === 1) {
+        const loc = data.locations[0];
+        setSelectedLocation(loc);
+        setFormData(prev => ({
+          ...prev,
+          firstName: data.customer.firstName,
+          lastName:  data.customer.lastName,
+          phone:     data.customer.phone,
+          email:     data.customer.email,
+          address:   loc.address?.street || '',
+          city:      loc.address?.city || '',
+          zip:       loc.address?.zip || '',
+        }));
+        setVerifyPhase('done');
+      } else if (data.locations.length > 1) {
+        setFormData(prev => ({
+          ...prev,
+          firstName: data.customer.firstName,
+          lastName:  data.customer.lastName,
+          phone:     data.customer.phone,
+          email:     data.customer.email,
+        }));
+        setVerifyPhase('location');
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          firstName: data.customer.firstName,
+          lastName:  data.customer.lastName,
+          phone:     data.customer.phone,
+          email:     data.customer.email,
+        }));
+        setVerifyPhase('done');
+      }
+
+    } catch (err) {
+      setVerifyError('Unable to verify membership. Please try again or call (972) 466-1917.');
+    } finally {
+      setVerifyLoading(false);
+    }
+  };
+
+  const handleSelectLocation = (loc) => {
+    setSelectedLocation(loc);
+    setFormData(prev => ({
+      ...prev,
+      address: loc.address?.street || '',
+      city:    loc.address?.city || '',
+      zip:     loc.address?.zip || '',
+    }));
+    setVerifyPhase('done');
+  };
+
+  const handleGuestFallback = () => {
+    setVerifyPhase('done');
+    setVerifiedCustomer(null);
+    setSelectedLocation(null);
+  };
 
   // ── Submit booking ──────────��─────────────────────────────────
   const handleSubmit = async () => {
@@ -206,6 +306,8 @@ export default function App({
         preferredDate: formData.preferredDate,
         preferredTime: formData.preferredTime,
         referralCode:  formData.referralCode.trim().toUpperCase() || null,
+        ...(isMemberVerified && verifiedCustomer && { customerId: verifiedCustomer.id }),
+        ...(isMemberVerified && selectedLocation  && { locationId: selectedLocation.id }),
       };
 
       const response = await fetch(apiEndpoint, {
@@ -265,21 +367,107 @@ export default function App({
         </div>
 
         {/* Progress */}
-        <div className="lex-progress-bar">
-          {[1, 2, 3, 4].map(i => (
-            <div key={i} className={`lex-progress-step ${step > i ? 'complete' : step === i ? 'active' : ''}`}>
-              <div className="lex-step-number">{step > i ? '✓' : i}</div>
-              <span className="lex-step-label">{['Service', 'Details', 'Contact', 'Schedule'][i-1]}</span>
-            </div>
-          ))}
-        </div>
+        {verifyPhase === 'done' && (
+          <div className="lex-progress-bar">
+            {(isMemberVerified
+              ? [{ num: 1, label: 'Service' }, { num: 2, label: 'Details' }, { num: 4, label: 'Schedule' }]
+              : [{ num: 1, label: 'Service' }, { num: 2, label: 'Details' }, { num: 3, label: 'Contact' }, { num: 4, label: 'Schedule' }]
+            ).map((s, idx) => (
+              <div key={s.num} className={`lex-progress-step ${step > s.num ? 'complete' : step === s.num ? 'active' : ''}`}>
+                <div className="lex-step-number">{step > s.num ? '✓' : idx + 1}</div>
+                <span className="lex-step-label">{s.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Content */}
         <div className="lex-scheduler-content" ref={contentRef}>
 
+          {/* Member verification — Phone entry */}
+          {verifyPhase === 'phone' && (
+            <div className="lex-step-content lex-verify-content">
+              <div className="lex-verify-welcome">
+                <div className="lex-verify-icon">👋</div>
+                <h3>Welcome, LEX Member</h3>
+                <p>Enter your phone number to get started.</p>
+              </div>
+
+              <div className="lex-form-group">
+                <label>Phone Number</label>
+                <input
+                  type="tel"
+                  placeholder="(214) 555-1234"
+                  value={memberPhone}
+                  onChange={(e) => setMemberPhone(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleVerifyMember(); }}
+                  autoFocus
+                />
+              </div>
+
+              {verifyError && (
+                <div className="lex-error-message">{verifyError}</div>
+              )}
+
+              <div className="lex-step-actions">
+                <button
+                  className="lex-btn-primary"
+                  onClick={handleVerifyMember}
+                  disabled={!memberPhone.trim() || verifyLoading}
+                >
+                  {verifyLoading ? 'Verifying...' : 'Verify Membership'}
+                </button>
+              </div>
+
+              <p className="lex-guest-link">
+                Not a member?{' '}
+                <a href="#" onClick={(e) => { e.preventDefault(); handleGuestFallback(); }}>
+                  Continue as guest
+                </a>
+              </p>
+            </div>
+          )}
+
+          {/* Member verification — Location selection */}
+          {verifyPhase === 'location' && (
+            <div className="lex-step-content lex-verify-content">
+              <div className="lex-verify-welcome">
+                <div className="lex-verify-icon">✓</div>
+                <h3>Welcome back, {verifiedCustomer?.firstName}!</h3>
+                <p>Which location needs service?</p>
+              </div>
+
+              <div className="lex-location-grid">
+                {memberLocations.map(loc => (
+                  <button
+                    key={loc.id}
+                    className="lex-location-card"
+                    onClick={() => handleSelectLocation(loc)}
+                  >
+                    <span className="lex-location-pin">📍</span>
+                    <div className="lex-location-details">
+                      <span className="lex-location-street">{loc.address?.street || loc.name}</span>
+                      <span className="lex-location-city">
+                        {[loc.address?.city, loc.address?.state, loc.address?.zip].filter(Boolean).join(', ')}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Step 1 — Service selection */}
-          {step === 1 && (
+          {verifyPhase === 'done' && step === 1 && (
             <div className="lex-step-content">
+              {isMemberVerified && (
+                <div className="lex-member-banner">
+                  <span>✓</span> Welcome back, {verifiedCustomer.firstName}!
+                  {selectedLocation && (
+                    <span className="lex-member-banner-loc"> — {selectedLocation.address?.street}</span>
+                  )}
+                </div>
+              )}
               <h3>{step1Heading || 'What do you need help with?'}</h3>
               <div className="lex-service-grid">
                 {Object.entries(services).map(([key, service]) => (
@@ -336,7 +524,7 @@ export default function App({
           )}
 
           {/* Step 2 — Details */}
-          {step === 2 && (
+          {verifyPhase === 'done' && step === 2 && (
             <div className="lex-step-content">
               <h3>{step2Heading || 'Tell us more about the problem'}</h3>
               <p className="lex-subtitle">
@@ -361,8 +549,8 @@ export default function App({
             </div>
           )}
 
-          {/* Step 3 — Contact info */}
-          {step === 3 && (
+          {/* Step 3 — Contact info (skipped for verified members) */}
+          {verifyPhase === 'done' && step === 3 && (
             <div className="lex-step-content">
               <h3>Your contact information</h3>
               <div className="lex-form-row">
@@ -443,7 +631,7 @@ export default function App({
           )}
 
           {/* Step 4 — Schedule */}
-          {step === 4 && (
+          {verifyPhase === 'done' && step === 4 && (
             <div className="lex-step-content">
               <h3>When works best for you?</h3>
               <div className="lex-form-group">
@@ -516,7 +704,7 @@ export default function App({
           )}
 
           {/* Step 5 — Confirmation */}
-          {step === 5 && submitSuccess && (
+          {verifyPhase === 'done' && step === 5 && submitSuccess && (
             <div className="lex-confirmation">
               <div className="lex-success-icon">✓</div>
               <h3>Request Received!</h3>

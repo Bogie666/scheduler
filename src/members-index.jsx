@@ -85,6 +85,8 @@ function initLEXMembersScheduler(config = {}) {
     step2Placeholder = "Do you have any areas of concern you'd like your technician to pay extra attention to?",
     services = memberServices,
     timeSlots,
+    memberMode = true,
+    verifyEndpoint = 'https://scheduler-mu-three.vercel.app/api/members-verify',
   } = config;
 
   let container = null;
@@ -117,6 +119,8 @@ function initLEXMembersScheduler(config = {}) {
         step1Heading={step1Heading}
         step2Heading={step2Heading}
         step2Placeholder={step2Placeholder}
+        memberMode={memberMode}
+        verifyEndpoint={verifyEndpoint}
       />
     );
     document.documentElement.style.overflow = 'hidden';
