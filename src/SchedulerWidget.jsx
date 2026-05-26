@@ -120,7 +120,6 @@ export default function App({
   const [verifiedCustomer, setVerifiedCustomer] = useState(null);
   const [memberLocations, setMemberLocations]   = useState([]);
   const [selectedLocation, setSelectedLocation] = useState(null);
-  const [verifyDebug, setVerifyDebug]           = useState(null);
 
   const isMemberVerified = memberMode && verifyPhase === 'done' && verifiedCustomer;
 
@@ -222,8 +221,6 @@ export default function App({
 
       setVerifiedCustomer(data.customer);
       setMemberLocations(data.locations || []);
-      setVerifyDebug(data.debug || null);
-
       if (!data.isMember) {
         setFormData(prev => ({
           ...prev,
@@ -496,11 +493,6 @@ export default function App({
                 <h3>Hi {verifiedCustomer?.firstName}, thanks for being a customer!</h3>
                 <p>We couldn't find an active membership on your account.</p>
               </div>
-              {verifyDebug && (
-                <div style={{ background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: '8px', padding: '10px 14px', fontSize: '10px', fontFamily: 'monospace', marginBottom: '12px', wordBreak: 'break-all', color: '#92400e', maxHeight: '200px', overflow: 'auto' }}>
-                  DEBUG: {JSON.stringify(verifyDebug)}
-                </div>
-              )}
 
               <div className="lex-not-member-actions">
                 <a href="tel:9724661917" className="lex-btn-secondary" style={{ textAlign: 'center', display: 'block', textDecoration: 'none' }}>
