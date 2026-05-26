@@ -107,45 +107,49 @@ module.exports = async function handler(req, res) {
     }));
 
     // ── 3. Check membership status ───────────────────────────
-    // ST memberships are tied to locations. Check each of the
-    // customer's locations for active memberships.
+    // Fetch one page of active memberships and inspect the object
+    // structure to find the right field for customer/location matching.
     let isMember = false;
     let membershipCount = 0;
-    let membershipDebug = { locationChecks: [] };
-    let customerMemberships = [];
+    let membershipDebug = {};
 
     try {
-      for (const loc of locations) {
-        const membershipRes = await axios.get(
-          `${ST_API_BASE}/memberships/v2/tenant/${TENANT_ID}/memberships`,
-          {
-            params:  { locationId: loc.id, status: 'Active' },
-            headers: stHeaders(token),
-          }
-        );
-        const allReturned = membershipRes.data?.data || [];
-        // Double-check: filter to only those matching this location
-        const locMemberships = allReturned.filter(m => m.locationId === loc.id);
-        membershipDebug.locationChecks.push({
-          locationId: loc.id,
-          address: loc.address?.street,
-          returned: allReturned.length,
-          matched: locMemberships.length,
-          memberships: locMemberships.map(m => ({
-            id: m.id, status: m.status, locationId: m.locationId,
-            name: m.membershipType?.name || m.type?.name || m.name,
-          })),
-        });
-        customerMemberships.push(...locMemberships);
-      }
+      const membershipRes = await axios.get(
+        `${ST_API_BASE}/memberships/v2/tenant/${TENANT_ID}/memberships`,
+        {
+          params:  { status: 'Active', pageSize: 5 },
+          headers: stHeaders(token),
+        }
+      );
+      const sample = membershipRes.data?.data || [];
+
+      // Log the full structure of the first membership so we can
+      // see all available fields for matching
+      const sampleObj = sample[0] || null;
+      const customerLocationIds = locations.map(l => l.id);
+
+      // Try every plausible field name for customer/location matching
+      const customerMemberships = sample.filter(m => {
+        if (m.customerId === customer.id) return true;
+        if (m.customer?.id === customer.id) return true;
+        if (m.locationId && customerLocationIds.includes(m.locationId)) return true;
+        if (m.location?.id && customerLocationIds.includes(m.location.id)) return true;
+        if (m.customerLocationId && customerLocationIds.includes(m.customerLocationId)) return true;
+        return false;
+      });
 
       membershipCount = customerMemberships.length;
       isMember = membershipCount > 0;
-      membershipDebug.customerId = customer.id;
-      membershipDebug.totalMatched = membershipCount;
+      membershipDebug = {
+        sampleKeys: sampleObj ? Object.keys(sampleObj) : [],
+        sampleRecord: sampleObj,
+        customerIdChecked: customer.id,
+        locationIdsChecked: customerLocationIds,
+        matchedCount: membershipCount,
+      };
     } catch (memberErr) {
       console.error('[Members] Membership check failed:', memberErr.response?.data || memberErr.message);
-      membershipDebug.error = memberErr.response?.data || memberErr.message;
+      membershipDebug = { error: memberErr.response?.data || memberErr.message };
       isMember = false;
     }
 
@@ -163,6 +167,7 @@ module.exports = async function handler(req, res) {
       locations,
       isMember,
       membershipCount,
+      debug: membershipDebug,
     });
 
   } catch (err) {
