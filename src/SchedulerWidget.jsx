@@ -139,6 +139,8 @@ export default function App({
     zip:          '',
     preferredDate: '',
     preferredTime: '',
+    windowStart:   '',
+    windowEnd:     '',
     referralCode:  '',
   });
 
@@ -333,6 +335,8 @@ export default function App({
         zip:           formData.zip,
         preferredDate: formData.preferredDate,
         preferredTime: formData.preferredTime,
+        windowStart:   formData.windowStart || null,
+        windowEnd:     formData.windowEnd || null,
         referralCode:  formData.referralCode.trim().toUpperCase() || null,
         ...(isMemberVerified && verifiedCustomer && { customerId: verifiedCustomer.id }),
         ...(isMemberVerified && selectedLocation  && { locationId: selectedLocation.id }),
@@ -703,7 +707,12 @@ export default function App({
                       return (
                         <button
                           key={slot.date}
-                          onClick={() => updateField('preferredDate', slot.date)}
+                          onClick={() => {
+                            updateField('preferredDate', slot.date);
+                            updateField('preferredTime', '');
+                            updateField('windowStart', '');
+                            updateField('windowEnd', '');
+                          }}
                           className={`lex-date-btn ${formData.preferredDate === slot.date ? 'selected' : ''}`}
                         >
                           {d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
@@ -714,21 +723,45 @@ export default function App({
                 </div>
               </div>
 
-              <div className="lex-form-group">
-                <label>Preferred Time</label>
-                <div className="lex-time-grid">
-                  {timeSlots.map(slot => (
-                    <button
-                      key={slot.id}
-                      onClick={() => { updateField('preferredTime', slot.id); beaconFunnel('slot_selected', { slot_id: slot.id }); }}
-                      className={`lex-time-btn ${formData.preferredTime === slot.id ? 'selected' : ''}`}
-                    >
-                      <span className="lex-time-label">{slot.label}</span>
-                      <span className="lex-time-range">{slot.time}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+              {formData.preferredDate && (() => {
+                const selectedDay = availableSlots.find(s => s.date === formData.preferredDate);
+                const windows = selectedDay?.windows || [];
+                const formatTime = (iso) => {
+                  const d = new Date(iso);
+                  let h = d.getHours(), m = d.getMinutes();
+                  // If hours are very early (0-6), the ISO is probably UTC — add 5 for CDT
+                  if (h < 6) h += 5;
+                  const ampm = h >= 12 ? 'PM' : 'AM';
+                  const hr = h > 12 ? h - 12 : h === 0 ? 12 : h;
+                  return m ? `${hr}:${String(m).padStart(2, '0')} ${ampm}` : `${hr} ${ampm}`;
+                };
+                return (
+                  <div className="lex-form-group">
+                    <label>Available Time Windows</label>
+                    <div className="lex-time-grid" style={windows.length > 3 ? { gridTemplateColumns: 'repeat(2, 1fr)' } : undefined}>
+                      {windows.map((w, idx) => {
+                        const key = `${w.start}-${w.end}`;
+                        const selected = formData.windowStart === w.start && formData.windowEnd === w.end;
+                        return (
+                          <button
+                            key={key}
+                            onClick={() => {
+                              updateField('preferredTime', `window-${idx}`);
+                              updateField('windowStart', w.start);
+                              updateField('windowEnd', w.end);
+                              beaconFunnel('slot_selected', { slot_ts: w.start });
+                            }}
+                            className={`lex-time-btn ${selected ? 'selected' : ''}`}
+                          >
+                            <span className="lex-time-label">{formatTime(w.start)}</span>
+                            <span className="lex-time-range">to {formatTime(w.end)}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
 
               <p className="lex-availability-note">
                 Appointment times are subject to availability. We'll confirm your time by phone.
@@ -743,7 +776,7 @@ export default function App({
                 <button
                   className="lex-btn-primary"
                   onClick={handleSubmit}
-                  disabled={!formData.preferredDate || !formData.preferredTime || isSubmitting}
+                  disabled={!formData.preferredDate || !formData.windowStart || isSubmitting}
                 >
                   {isSubmitting ? 'Submitting...' : 'Request Appointment'}
                 </button>
@@ -768,7 +801,10 @@ export default function App({
                                        ? selectedService.issues.find(i => i.id === formData.issue)?.label
                                        : null],
                   ['Preferred Date', formData.preferredDate && new Date(formData.preferredDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })],
-                  ['Preferred Time', timeSlots.find(t => t.id === formData.preferredTime)?.label],
+                  ['Preferred Time', formData.windowStart ? (() => {
+                    const fmt = (iso) => new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                    return `${fmt(formData.windowStart)} - ${fmt(formData.windowEnd)}`;
+                  })() : timeSlots.find(t => t.id === formData.preferredTime)?.label],
                   ...(formData.referralCode ? [['Referral Code', formData.referralCode]] : []),
                 ].map(([label, value]) => value ? (
                   <div key={label} className="lex-summary-row">

@@ -249,6 +249,8 @@ module.exports = async function handler(req, res) {
     zip,
     preferredDate,
     preferredTime,
+    windowStart,
+    windowEnd,
     referralCode,
     customerId: preVerifiedCustomerId,
     locationId: preVerifiedLocationId,
@@ -284,22 +286,24 @@ module.exports = async function handler(req, res) {
     const jobCampaignId = referralCode ? 421949222 : 46472179;
 
     // ── Time window ──────────────────────────────────────────
-    const timeWindows = {
-      morning:           { start: '08:00:00', end: '12:00:00' },
-      afternoon:         { start: '12:00:00', end: '17:00:00' },
-      'first-available': { start: '08:00:00', end: '17:00:00' },
-    };
-    const tw = timeWindows[preferredTime] || timeWindows['first-available'];
-
-    // Determine Central Time offset for the preferred date (CDT = -05:00, CST = -06:00)
-    const dateObj = new Date(`${preferredDate}T12:00:00-06:00`);
-    const jan = new Date(dateObj.getFullYear(), 0, 1);
-    const jul = new Date(dateObj.getFullYear(), 6, 1);
-    const isDST = dateObj.getTimezoneOffset() < Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
-    // Server may be UTC, so determine DST by checking if date falls in DST range
-    const month = parseInt(preferredDate.split('-')[1], 10);
-    // DST in US: roughly March-November
-    const ctOffset = (month >= 3 && month <= 10) ? '-05:00' : '-06:00';
+    // Use actual ST arrival window times if provided, otherwise fall
+    // back to hardcoded windows with Central Time offset.
+    let jobStart, jobEnd;
+    if (windowStart && windowEnd) {
+      jobStart = windowStart;
+      jobEnd   = windowEnd;
+    } else {
+      const timeWindows = {
+        morning:           { start: '08:00:00', end: '12:00:00' },
+        afternoon:         { start: '12:00:00', end: '17:00:00' },
+        'first-available': { start: '08:00:00', end: '17:00:00' },
+      };
+      const tw = timeWindows[preferredTime] || timeWindows['first-available'];
+      const month = parseInt(preferredDate.split('-')[1], 10);
+      const ctOffset = (month >= 3 && month <= 10) ? '-05:00' : '-06:00';
+      jobStart = `${preferredDate}T${tw.start}${ctOffset}`;
+      jobEnd   = `${preferredDate}T${tw.end}${ctOffset}`;
+    }
 
     // ── 1. Find or create customer ───────────────────────────
     let customer;
@@ -355,8 +359,8 @@ module.exports = async function handler(req, res) {
         businessUnitId: mapping.businessUnitId,
         jobTypeId:      mapping.jobTypeId,
         summary,
-        start: `${preferredDate}T${tw.start}${ctOffset}`,
-        end:   `${preferredDate}T${tw.end}${ctOffset}`,
+        start: jobStart,
+        end:   jobEnd,
         campaignId:     jobCampaignId,
       });
       console.log(`[Booking] Created unassigned job ${job.id} for ${firstName} ${lastName} — ${issueLabel}`);
