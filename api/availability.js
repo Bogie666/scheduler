@@ -139,11 +139,7 @@ module.exports = async function handler(req, res) {
 
     // Parse response — ST returns time windows grouped by BU per day.
     // Each entry has: start, end, businessUnitIds[], openAvailability, isAvailable
-    // We need to:
-    //  1. Filter to windows that include our target BU
-    //  2. Group by date
-    //  3. Sum openAvailability across windows for each date
-    //  4. Only return dates with availability > 0
+    // Return each available window so the widget can show actual arrival times.
     const availabilities = response.data?.availabilities || [];
     const targetBuId = mapping.businessUnitId;
     const now = new Date();
@@ -152,23 +148,29 @@ module.exports = async function handler(req, res) {
     for (const window of availabilities) {
       if (!window.businessUnitIds || !window.businessUnitIds.includes(targetBuId)) continue;
       if (!window.isAvailable) continue;
-
-      // Skip time windows that have already ended today
       if (window.end && new Date(window.end) <= now) continue;
 
       const date = window.start?.split('T')[0];
       if (!date) continue;
 
       if (!dayMap[date]) {
-        dayMap[date] = 0;
+        dayMap[date] = { availableHours: 0, windows: [] };
       }
-      dayMap[date] += window.openAvailability || 0;
+      dayMap[date].availableHours += window.openAvailability || 0;
+      dayMap[date].windows.push({
+        start: window.start,
+        end:   window.end,
+      });
     }
 
     const slots = Object.entries(dayMap)
-      .filter(([, hours]) => hours > 0)
+      .filter(([, info]) => info.availableHours > 0)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([date, availableHours]) => ({ date, availableHours }));
+      .map(([date, info]) => ({
+        date,
+        availableHours: info.availableHours,
+        windows: info.windows.sort((a, b) => a.start.localeCompare(b.start)),
+      }));
 
     return res.status(200).json({ slots });
 
