@@ -291,6 +291,16 @@ module.exports = async function handler(req, res) {
     };
     const tw = timeWindows[preferredTime] || timeWindows['first-available'];
 
+    // Determine Central Time offset for the preferred date (CDT = -05:00, CST = -06:00)
+    const dateObj = new Date(`${preferredDate}T12:00:00-06:00`);
+    const jan = new Date(dateObj.getFullYear(), 0, 1);
+    const jul = new Date(dateObj.getFullYear(), 6, 1);
+    const isDST = dateObj.getTimezoneOffset() < Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
+    // Server may be UTC, so determine DST by checking if date falls in DST range
+    const month = parseInt(preferredDate.split('-')[1], 10);
+    // DST in US: roughly March-November
+    const ctOffset = (month >= 3 && month <= 10) ? '-05:00' : '-06:00';
+
     // ── 1. Find or create customer ───────────────────────────
     let customer;
     if (preVerifiedCustomerId) {
@@ -345,8 +355,8 @@ module.exports = async function handler(req, res) {
         businessUnitId: mapping.businessUnitId,
         jobTypeId:      mapping.jobTypeId,
         summary,
-        start: `${preferredDate}T${tw.start}`,
-        end:   `${preferredDate}T${tw.end}`,
+        start: `${preferredDate}T${tw.start}${ctOffset}`,
+        end:   `${preferredDate}T${tw.end}${ctOffset}`,
         campaignId:     jobCampaignId,
       });
       console.log(`[Booking] Created unassigned job ${job.id} for ${firstName} ${lastName} — ${issueLabel}`);
