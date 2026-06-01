@@ -728,12 +728,7 @@ export default function App({
                 const windows = selectedDay?.windows || [];
                 const formatTime = (iso) => {
                   const d = new Date(iso);
-                  let h = d.getHours(), m = d.getMinutes();
-                  // If hours are very early (0-6), the ISO is probably UTC — add 5 for CDT
-                  if (h < 6) h += 5;
-                  const ampm = h >= 12 ? 'PM' : 'AM';
-                  const hr = h > 12 ? h - 12 : h === 0 ? 12 : h;
-                  return m ? `${hr}:${String(m).padStart(2, '0')} ${ampm}` : `${hr} ${ampm}`;
+                  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
                 };
                 return (
                   <div className="lex-form-group">
