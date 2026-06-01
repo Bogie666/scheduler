@@ -137,12 +137,24 @@ module.exports = async function handler(req, res) {
       }
     );
 
-    // Parse response — ST returns time windows grouped by BU per day.
-    // Each entry has: start, end, businessUnitIds[], openAvailability, isAvailable
-    // Return each available window so the widget can show actual arrival times.
+    // Parse response — ST returns time windows in the tenant's local
+    // timezone (Central) but without an offset. The Jobs API interprets
+    // bare timestamps as UTC, so we append the CT offset here to make
+    // timestamps unambiguous throughout the system.
     const availabilities = response.data?.availabilities || [];
     const targetBuId = mapping.businessUnitId;
     const now = new Date();
+
+    // Append Central Time offset to a bare ISO timestamp
+    function withCTOffset(ts) {
+      if (!ts) return ts;
+      // Already has offset or Z suffix — leave it alone
+      if (/[Zz]$/.test(ts) || /[+-]\d{2}:\d{2}$/.test(ts)) return ts;
+      // Determine CDT (-05:00) vs CST (-06:00) from month
+      const month = parseInt(ts.split('-')[1], 10);
+      const offset = (month >= 3 && month <= 10) ? '-05:00' : '-06:00';
+      return ts + offset;
+    }
 
     const dayMap = {};
     for (const window of availabilities) {
@@ -158,8 +170,8 @@ module.exports = async function handler(req, res) {
       }
       dayMap[date].availableHours += window.openAvailability || 0;
       dayMap[date].windows.push({
-        start: window.start,
-        end:   window.end,
+        start: withCTOffset(window.start),
+        end:   withCTOffset(window.end),
       });
     }
 
