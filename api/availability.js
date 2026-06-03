@@ -41,8 +41,9 @@ const JOB_TYPE_MAP = {
   'clogged-drain':      { jobTypeId: 521,    businessUnitId: 124467371 },
   'water-heater':       { jobTypeId: 521,    businessUnitId: 124467371 },
   'no-hot-water':       { jobTypeId: 521,    businessUnitId: 124467371 },
-  'toilet-issue':       { jobTypeId: 521,    businessUnitId: 124467371 },
-  'plumbing-other':     { jobTypeId: 521,    businessUnitId: 124467371 },
+  'toilet-issue':       { jobTypeId: 521,       businessUnitId: 124467371 },
+  'water-quality-test': { jobTypeId: 158642924, businessUnitId: 8085 },
+  'plumbing-other':     { jobTypeId: 521,       businessUnitId: 124467371 },
   // ── Electrical ────────────────────────────────────────────
   'outlet-not-working': { jobTypeId: 515,    businessUnitId: 161649734 },
   'breaker-tripping':   { jobTypeId: 515,    businessUnitId: 161649734 },
