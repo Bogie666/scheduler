@@ -74,6 +74,7 @@ const SERVICE_LABELS = {
   'water-heater':       'Water Heater Issue',
   'no-hot-water':       'No Hot Water',
   'toilet-issue':       'Toilet Problem',
+  'water-quality-test': 'Water Quality Test',
   'plumbing-other':     'Plumbing - Other',
   'outlet-not-working': 'Outlet Not Working',
   'breaker-tripping':   'Breaker Keeps Tripping',

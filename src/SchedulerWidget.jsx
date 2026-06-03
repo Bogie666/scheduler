@@ -34,8 +34,9 @@ const defaultServices = {
       { id: 'clogged-drain',   label: 'Clogged Drain' },
       { id: 'water-heater',    label: 'Water Heater Issue' },
       { id: 'no-hot-water',    label: 'No Hot Water' },
-      { id: 'toilet-issue',    label: 'Toilet Problem' },
-      { id: 'plumbing-other',  label: 'Other Plumbing Issue' },
+      { id: 'toilet-issue',       label: 'Toilet Problem' },
+      { id: 'water-quality-test', label: 'Water Quality Test' },
+      { id: 'plumbing-other',     label: 'Other Plumbing Issue' },
     ]
   },
   electrical: {
