@@ -146,15 +146,17 @@ module.exports = async function handler(req, res) {
     const targetBuId = mapping.businessUnitId;
     const now = new Date();
 
-    // Append Central Time offset to a bare ISO timestamp
-    function withCTOffset(ts) {
+    // ST Capacity API returns times that represent the tenant's local
+    // timezone (Central) but may tag them with Z or no offset. Strip
+    // any existing suffix and apply the correct CT offset so timestamps
+    // are unambiguous when passed to the Jobs API.
+    function toCentralTime(ts) {
       if (!ts) return ts;
-      // Already has offset or Z suffix — leave it alone
-      if (/[Zz]$/.test(ts) || /[+-]\d{2}:\d{2}$/.test(ts)) return ts;
-      // Determine CDT (-05:00) vs CST (-06:00) from month
-      const month = parseInt(ts.split('-')[1], 10);
+      // Strip trailing Z or existing offset (e.g. +00:00, -05:00)
+      const bare = ts.replace(/[Zz]$/, '').replace(/[+-]\d{2}:\d{2}$/, '');
+      const month = parseInt(bare.split('-')[1], 10);
       const offset = (month >= 3 && month <= 10) ? '-05:00' : '-06:00';
-      return ts + offset;
+      return bare + offset;
     }
 
     const dayMap = {};
@@ -171,8 +173,8 @@ module.exports = async function handler(req, res) {
       }
       dayMap[date].availableHours += window.openAvailability || 0;
       dayMap[date].windows.push({
-        start: withCTOffset(window.start),
-        end:   withCTOffset(window.end),
+        start: toCentralTime(window.start),
+        end:   toCentralTime(window.end),
       });
     }
 
