@@ -101,7 +101,7 @@ const BRANDS = {
   etx: {
     key: 'etx',
     name: 'LEX ETX',
-    phone: '(972) 466-1917',         // PLACEHOLDER: confirm Tyler/ETX line with Ryan
+    phone: '(903) 581-6561',         // ETX (Tyler / East Texas) line
     websiteCampaignId: 46472179,     // No dedicated ETX online campaign; using Lex Website
     referralCampaignId: 421949222,   // LexPerks Referral
     units: {
@@ -114,7 +114,7 @@ const BRANDS = {
   lyons: {
     key: 'lyons',
     name: 'LYONS',
-    phone: '(972) 888-9669',         // PLACEHOLDER: confirm Lyons line with Ryan
+    phone: '(214) 432-2859',         // Lyons line
     websiteCampaignId: 46472180,     // Lyons Website
     referralCampaignId: null,        // No confirmed Lyons referral program yet
     units: {

@@ -27,7 +27,7 @@ window.SchedulerBrandPresets = {
     headerColor: '#133865',
     buttonColor: '#0A5C8C',
     tagline: 'The Gold Standard of White Glove Service',
-    phoneNumber: '(972) 466-1917', // confirm dedicated ETX line
+    phoneNumber: '(903) 581-6561', // ETX (Tyler / East Texas) line
     buttonText: 'Book Online',
   },
 
@@ -39,7 +39,7 @@ window.SchedulerBrandPresets = {
     headerColor: '#152857',  // Lyons navy (provisional)
     buttonColor: '#0085E2',  // Lyons blue (provisional)
     tagline: 'The King of 5-Star Service',
-    phoneNumber: '(972) 888-9669', // confirm Lyons line
+    phoneNumber: '(214) 432-2859', // Lyons line
     buttonText: 'Book Online',
   },
 };
