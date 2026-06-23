@@ -144,12 +144,122 @@
       transform: translateY(-1px);
       box-shadow: 0 6px 18px rgba(201, 161, 74, 0.45);
     }
+
+    /* ----- Per-brand separators and badges ----- */
+    .brand-band {
+      max-width: 800px;
+      margin: 48px auto 8px;
+      padding: 22px 20px;
+      border-radius: 12px;
+      text-align: center;
+      color: #fff;
+    }
+    .brand-band h2 {
+      margin: 0;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+    .brand-band p {
+      margin: 6px 0 0;
+      font-size: 14px;
+      opacity: 0.92;
+    }
+    .brand-band--lex   { background: linear-gradient(135deg, #0e2a4a 0%, #133865 100%); }
+    .brand-band--etx   { background: linear-gradient(135deg, #0e2a4a 0%, #133865 100%); }
+    .brand-band--lyons { background: linear-gradient(135deg, #271C70 0%, #3a2a9c 100%); }
+
+    .brand-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+    .brand-badge--etx   { background: #133865; }
+    .brand-badge--lyons { background: #271C70; }
+
+    .manual-trigger-lyons {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: #FF942A;
+      color: #271C70;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(255, 148, 42, 0.3);
+    }
+    .manual-trigger-lyons:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(255, 148, 42, 0.45);
+    }
+
+    /* ----- Brand selector dropdown ----- */
+    .brand-selector {
+      max-width: 800px;
+      margin: 32px auto 0;
+      padding: 0 20px;
+      text-align: center;
+    }
+    .brand-selector label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #64748b;
+      margin-bottom: 10px;
+    }
+    .brand-selector select {
+      font-size: 16px;
+      font-weight: 600;
+      color: #0e2a4a;
+      padding: 12px 44px 12px 18px;
+      border: 2px solid #cbd5e1;
+      border-radius: 10px;
+      background: #fff;
+      cursor: pointer;
+      min-width: 320px;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230e2a4a' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+    }
+    .brand-selector select:focus {
+      outline: none;
+      border-color: #133865;
+    }
+    .brand-panel[hidden] { display: none; }
   </style>
 </head>
 <body>
   <div class="demo-header">
     <h1>LEX Air Conditioning</h1>
     <p>Heating • Cooling • Plumbing • Electrical</p>
+  </div>
+
+  <div class="brand-selector">
+    <label for="brandSelect">Select Brand</label>
+    <select id="brandSelect" onchange="showBrand(this.value)">
+      <option value="lex">LEX Air Conditioning (DFW) — full trades</option>
+      <option value="etx">LEX ETX (Tyler / East Texas) — HVAC only</option>
+      <option value="lyons">Lyons — HVAC only</option>
+    </select>
+  </div>
+
+  <div class="brand-panel" data-brand="lex">
+  <div class="brand-band brand-band--lex">
+    <h2>LEX Air Conditioning (DFW)</h2>
+    <p>Navy / gold branding • HVAC + Plumbing + Electrical • endpoint: /api/lex-booking</p>
   </div>
 
   <div class="demo-content">
@@ -322,11 +432,150 @@ LEXMembersScheduler.toggle();</code>
       </div>
     </div>
 
+  </div><!-- /brand-panel lex -->
+
+  <!-- ============================================================ -->
+  <!-- LEX ETX (Tyler / East Texas)                                  -->
+  <!-- ============================================================ -->
+  <div class="brand-panel" data-brand="etx" hidden>
+  <div class="brand-band brand-band--etx">
+    <h2>LEX ETX (Tyler / East Texas)</h2>
+    <p>Same LEX branding • HVAC only • endpoint: /api/etx-booking</p>
+  </div>
+
+  <div class="demo-content">
+    <div class="demo-section">
+      <span class="brand-badge brand-badge--etx">LEX ETX</span>
+      <h2>📋 WordPress Installation</h2>
+      <p>
+        Paste into the ETX page. Same widget and branding as LEX; only the booking
+        endpoint differs so jobs route to the ETX business units in ServiceTitan.
+      </p>
+      <code>&lt;!-- LEX ETX Scheduler Widget --&gt;
+&lt;link rel="stylesheet" href="https://scheduler-mu-three.vercel.app/lex-scheduler.css"&gt;
+&lt;script&gt;
+  window.LEXSchedulerConfig = {
+    apiEndpoint: 'https://scheduler-mu-three.vercel.app/api/etx-booking',
+    autoButton: true,
+    buttonText: 'Book Online',
+    position: 'bottom-right',
+    headerColor: '#133865',
+    buttonColor: '#0A5C8C',
+    tagline: 'The Gold Standard of White Glove Service',
+    phoneNumber: '(903) 581-6561'
+  };
+&lt;/script&gt;
+&lt;script src="https://scheduler-mu-three.vercel.app/lex-scheduler.iife.js"&gt;&lt;/script&gt;</code>
+    </div>
+
+    <div class="demo-section">
+      <span class="brand-badge brand-badge--etx">LEX ETX</span>
+      <h2>⚙️ Configuration Options</h2>
+      <code>{
+  apiEndpoint: '/api/etx-booking',  // routes to ETX business units
+  autoButton: true,
+  buttonText: 'Book Online',
+  position: 'bottom-right',
+
+  // ETX uses LEX branding (identical look)
+  headerColor: '#133865',
+  buttonColor: '#0A5C8C',
+  tagline: 'The Gold Standard of White Glove Service',
+  phoneNumber: '(903) 581-6561'
+
+  // Note: ETX is HVAC only. Plumbing/electrical issue types are
+  // rejected by the backend (no ETX business units for those trades).
+}</code>
+    </div>
+  </div>
+
+  </div><!-- /brand-panel etx -->
+
+  <!-- ============================================================ -->
+  <!-- LYONS                                                         -->
+  <!-- ============================================================ -->
+  <div class="brand-panel" data-brand="lyons" hidden>
+  <div class="brand-band brand-band--lyons">
+    <h2>Lyons — The King of 5-Star Service</h2>
+    <p>Navy / orange branding • HVAC only • endpoint: /api/lyons-booking</p>
+  </div>
+
+  <div class="demo-content">
+    <div class="demo-section">
+      <span class="brand-badge brand-badge--lyons">Lyons</span>
+      <h2>🗓️ Schedule Service Online</h2>
+      <p>
+        Lyons-branded scheduler (navy header, orange button, Lyons logo).
+        Click below to preview.
+      </p>
+      <button class="manual-trigger-lyons" onclick="LyonsScheduler.open()">
+        Book Appointment Now
+      </button>
+    </div>
+
+    <div class="demo-section">
+      <span class="brand-badge brand-badge--lyons">Lyons</span>
+      <h2>📋 WordPress Installation</h2>
+      <p>
+        Paste into the Lyons page. Distinct Lyons branding; jobs route to the
+        Lyons business units in ServiceTitan.
+      </p>
+      <code>&lt;!-- Lyons Scheduler Widget --&gt;
+&lt;link rel="stylesheet" href="https://scheduler-mu-three.vercel.app/lex-scheduler.css"&gt;
+&lt;script&gt;
+  window.LEXSchedulerConfig = {
+    apiEndpoint: 'https://scheduler-mu-three.vercel.app/api/lyons-booking',
+    autoButton: true,
+    buttonText: 'Book Online',
+    position: 'bottom-right',
+    logoUrl: 'https://scheduler-mu-three.vercel.app/lyons-logo.png',
+    headerColor: '#271C70',
+    buttonColor: '#FF942A',
+    tagline: 'The King of 5-Star Service',
+    phoneNumber: '(214) 432-2859'
+  };
+&lt;/script&gt;
+&lt;script src="https://scheduler-mu-three.vercel.app/lex-scheduler.iife.js"&gt;&lt;/script&gt;</code>
+    </div>
+
+    <div class="demo-section">
+      <span class="brand-badge brand-badge--lyons">Lyons</span>
+      <h2>⚙️ Configuration Options</h2>
+      <code>{
+  apiEndpoint: '/api/lyons-booking',  // routes to Lyons business units
+  autoButton: true,
+  buttonText: 'Book Online',
+  position: 'bottom-right',
+
+  // Lyons branding (from official logo)
+  logoUrl: 'https://scheduler-mu-three.vercel.app/lyons-logo.png',
+  headerColor: '#271C70',  // Lyons navy/indigo
+  buttonColor: '#FF942A',  // Lyons orange
+  tagline: 'The King of 5-Star Service',
+  phoneNumber: '(214) 432-2859'
+
+  // Note: Lyons is HVAC only. Plumbing/electrical issue types are
+  // rejected by the backend (no Lyons business units for those trades).
+}</code>
+    </div>
+  </div>
+
+  </div><!-- /brand-panel lyons -->
+
   <div class="demo-footer">
     <p>LEX Air Conditioning • Serving the DFW Metroplex since 1970</p>
   </div>
 
-  <!-- Load both widgets for development/preview -->
+  <!-- Brand panel toggle -->
+  <script>
+    function showBrand(brand) {
+      document.querySelectorAll('.brand-panel').forEach(function (panel) {
+        panel.hidden = (panel.getAttribute('data-brand') !== brand);
+      });
+    }
+  </script>
+
+  <!-- Load widgets for development/preview -->
   <script type="module">
     import initLEXScheduler from './src/index.jsx';
     import initLEXMembersScheduler from './src/members-index.jsx';
@@ -341,6 +590,18 @@ LEXMembersScheduler.toggle();</code>
     initLEXMembersScheduler({
       apiEndpoint: '/api/lex-booking',
       autoButton: false,
+    });
+
+    // Lyons preview instance (navy/orange). Exposes window.LyonsScheduler
+    // so the Lyons "Book Appointment Now" button on this page works.
+    window.LyonsScheduler = initLEXScheduler({
+      apiEndpoint: '/api/lyons-booking',
+      autoButton: false,
+      logoUrl: '/lyons-logo.png',
+      headerColor: '#271C70',
+      buttonColor: '#FF942A',
+      tagline: 'The King of 5-Star Service',
+      phoneNumber: '(214) 432-2859'
     });
   </script>
 </body>
