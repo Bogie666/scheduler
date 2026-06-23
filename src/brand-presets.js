@@ -31,13 +31,14 @@ window.SchedulerBrandPresets = {
     buttonText: 'Book Online',
   },
 
-  // LYONS (King of 5-Star Service) — distinct blue branding, HVAC only.
-  // Colors PROVISIONAL — confirm with official Lyons brand spec.
+  // LYONS (King of 5-Star Service) — distinct purple/cyan/orange branding, HVAC only.
+  // Colors taken from the official Lyons mascot logo (purple bg, cyan top,
+  // orange accents, navy wordmark). Logo asset: public/lyons-logo.png (add file).
   lyons: {
     apiEndpoint: '/api/lyons-booking',
-    logoUrl: 'https://scheduler-mu-three.vercel.app/lyons-logo.png', // add asset
-    headerColor: '#152857',  // Lyons navy (provisional)
-    buttonColor: '#0085E2',  // Lyons blue (provisional)
+    logoUrl: 'https://scheduler-mu-three.vercel.app/lyons-logo.png', // add public/lyons-logo.png
+    headerColor: '#552C91',  // Lyons purple (primary brand)
+    buttonColor: '#F7941E',  // Lyons orange (signature CTA accent)
     tagline: 'The King of 5-Star Service',
     phoneNumber: '(214) 432-2859', // Lyons line
     buttonText: 'Book Online',
