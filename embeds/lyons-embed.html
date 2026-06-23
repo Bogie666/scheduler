@@ -1,0 +1,26 @@
+<!-- ============================================================== -->
+<!-- LYONS SCHEDULER EMBED                                           -->
+<!-- Paste into the Lyons WordPress page (footer / custom HTML block).-->
+<!-- Lyons navy/orange branding; bookings route to Lyons BUs.        -->
+<!-- ============================================================== -->
+<link rel="stylesheet" href="https://scheduler-mu-three.vercel.app/lex-scheduler.css">
+<script>
+  window.LEXSchedulerConfig = {
+    apiEndpoint: 'https://scheduler-mu-three.vercel.app/api/lyons-booking',
+    autoButton: true,
+    buttonText: 'Book Online',
+    position: 'bottom-right',
+    baseUrl: 'https://scheduler-mu-three.vercel.app',
+    // Lyons branding (from official logo)
+    logoUrl: 'https://scheduler-mu-three.vercel.app/lyons-logo.png',
+    headerColor: '#271C70',
+    buttonColor: '#FF942A',
+    tagline: 'The King of 5-Star Service',
+    phoneNumber: '(214) 432-2859'
+  };
+</script>
+<script src="https://scheduler-mu-three.vercel.app/lex-scheduler.iife.js"></script>
+
+<!-- Optional: trigger from an existing button instead of the floating one. -->
+<!-- Set autoButton:false above, add buttonSelector:'.your-btn-class', then: -->
+<!--   <a href="javascript:void(0)" onclick="LEXScheduler.open()">Schedule Online</a> -->

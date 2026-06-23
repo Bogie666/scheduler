@@ -1,0 +1,25 @@
+<!-- ============================================================== -->
+<!-- LEX ETX (Tyler / East Texas) SCHEDULER EMBED                    -->
+<!-- Paste into the ETX WordPress page (footer / custom HTML block). -->
+<!-- Same branding as LEX; bookings route to ETX business units.     -->
+<!-- ============================================================== -->
+<link rel="stylesheet" href="https://scheduler-mu-three.vercel.app/lex-scheduler.css">
+<script>
+  window.LEXSchedulerConfig = {
+    apiEndpoint: 'https://scheduler-mu-three.vercel.app/api/etx-booking',
+    autoButton: true,
+    buttonText: 'Book Online',
+    position: 'bottom-right',
+    baseUrl: 'https://scheduler-mu-three.vercel.app',
+    // ETX uses LEX branding (per Ryan)
+    headerColor: '#133865',
+    buttonColor: '#0A5C8C',
+    tagline: 'The Gold Standard of White Glove Service',
+    phoneNumber: '(903) 581-6561'
+  };
+</script>
+<script src="https://scheduler-mu-three.vercel.app/lex-scheduler.iife.js"></script>
+
+<!-- Optional: trigger from an existing button instead of the floating one. -->
+<!-- Set autoButton:false above, add buttonSelector:'.your-btn-class', then: -->
+<!--   <a href="javascript:void(0)" onclick="LEXScheduler.open()">Schedule Online</a> -->
