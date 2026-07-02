@@ -1,7 +1,9 @@
 /**
  * POST /api/members-verify
  * ─────────────────────────────────────────────────────────────
- * Verifies a customer's LEX membership by phone number.
+ * Verifies a customer's membership by phone number, for the
+ * selected brand (Lyons, Lex ETX). Brand is chosen via a `brand`
+ * field in the body (defaults to DEFAULT_BRAND).
  *
  * Returns:
  *   - customer info (id, name, phone, email)
@@ -14,47 +16,12 @@
  */
 
 const axios = require('axios');
-
-const ST_AUTH_URL   = 'https://auth.servicetitan.io/connect/token';
-const ST_API_BASE   = 'https://api.servicetitan.io';
-const TENANT_ID     = process.env.ST_TENANT_ID     || '1498628772';
-const APP_KEY       = process.env.ST_APP_KEY        || process.env.ST_APP_ID || process.env.SERVICETITAN_APP_KEY;
-const CLIENT_ID     = process.env.ST_CLIENT_ID      || process.env.SERVICETITAN_CLIENT_ID;
-const CLIENT_SECRET = process.env.ST_CLIENT_SECRET  || process.env.SERVICETITAN_CLIENT_SECRET;
-
-let cachedToken    = null;
-let tokenExpiresAt = 0;
-
-async function getAccessToken() {
-  if (cachedToken && Date.now() < tokenExpiresAt - 60000) return cachedToken;
-
-  const res = await axios.post(
-    ST_AUTH_URL,
-    new URLSearchParams({
-      grant_type:    'client_credentials',
-      client_id:     CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-    }),
-    { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-  );
-
-  cachedToken    = res.data.access_token;
-  tokenExpiresAt = Date.now() + (res.data.expires_in * 1000);
-  return cachedToken;
-}
-
-function stHeaders(token) {
-  return {
-    Authorization:  `Bearer ${token}`,
-    'ST-App-Key':   APP_KEY,
-    'Content-Type': 'application/json',
-  };
-}
+const { resolveBrandKey, getBrand, getAccessToken, stHeaders } = require('./_brands');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Brand');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -64,15 +31,16 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Phone number is required' });
   }
 
+  const brand      = getBrand(resolveBrandKey(req));
   const cleanPhone = phone.replace(/\D/g, '');
 
   try {
-    const token = await getAccessToken();
+    const token = await getAccessToken(brand);
 
     // ── 1. Find customer by phone ────────────────────────────
     const customerRes = await axios.get(
-      `${ST_API_BASE}/crm/v2/tenant/${TENANT_ID}/customers`,
-      { params: { phone: cleanPhone }, headers: stHeaders(token) }
+      `${brand.apiBase}/crm/v2/tenant/${brand.tenantId}/customers`,
+      { params: { phone: cleanPhone }, headers: stHeaders(brand, token) }
     );
 
     const customers = customerRes.data?.data || [];
@@ -96,8 +64,8 @@ module.exports = async function handler(req, res) {
 
     // ── 2. Get customer locations ────────────────────────────
     const locationsRes = await axios.get(
-      `${ST_API_BASE}/crm/v2/tenant/${TENANT_ID}/locations`,
-      { params: { customerId: customer.id }, headers: stHeaders(token) }
+      `${brand.apiBase}/crm/v2/tenant/${brand.tenantId}/locations`,
+      { params: { customerId: customer.id }, headers: stHeaders(brand, token) }
     );
 
     const locations = (locationsRes.data?.data || []).map(loc => ({
@@ -122,10 +90,10 @@ module.exports = async function handler(req, res) {
 
       while (hasMore) {
         const membershipRes = await axios.get(
-          `${ST_API_BASE}/memberships/v2/tenant/${TENANT_ID}/memberships`,
+          `${brand.apiBase}/memberships/v2/tenant/${brand.tenantId}/memberships`,
           {
             params:  { status: 'Active', page, pageSize },
-            headers: stHeaders(token),
+            headers: stHeaders(brand, token),
           }
         );
         const batch = membershipRes.data?.data || [];
@@ -149,14 +117,15 @@ module.exports = async function handler(req, res) {
       membershipCount = customerMemberships.length;
       isMember = membershipCount > 0;
     } catch (memberErr) {
-      console.error('[Members] Membership check failed:', memberErr.response?.data || memberErr.message);
+      console.error(`[Members:${brand.key}] Membership check failed:`, memberErr.response?.data || memberErr.message);
       isMember = false;
     }
 
-    console.log(`[Members] Verified customer ${customer.id} — ${customer.name} — member: ${isMember} (${membershipCount} active)`);
+    console.log(`[Members:${brand.key}] Verified customer ${customer.id} — ${customer.name} — member: ${isMember} (${membershipCount} active)`);
 
     return res.status(200).json({
       success: true,
+      brand:   brand.key,
       customer: {
         id:        customer.id,
         firstName,
@@ -171,12 +140,12 @@ module.exports = async function handler(req, res) {
 
   } catch (err) {
     const stError = err.response?.data || err.message;
-    console.error('[Members] Verify error:', stError);
+    console.error(`[Members:${brand.key}] Verify error:`, stError);
 
     return res.status(500).json({
       error:   'verify_failed',
       debug:   stError,
-      message: 'Unable to verify membership. Please try again or call (972) 466-1917.',
+      message: `Unable to verify membership. Please try again or call ${brand.phone}.`,
     });
   }
 };

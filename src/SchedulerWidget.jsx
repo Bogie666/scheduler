@@ -62,6 +62,7 @@ const defaultTimeSlots = [
 
 export default function App({
   onClose,
+  brand,
   apiEndpoint: apiEndpointProp,
   baseUrl,
   logoUrl,
@@ -78,6 +79,10 @@ export default function App({
   memberMode,
   verifyEndpoint,
 }) {
+  // Support phone — brand-configurable, used in copy and tel: links.
+  const phone = phoneNumber || '(972) 466-1917';
+  const telHref = `tel:${phone.replace(/\D/g, '')}`;
+
   const [useDefaultServices, setUseDefaultServices] = useState(false);
   const services = useDefaultServices ? defaultServices : (servicesProp || defaultServices);
   const timeSlots = timeSlotsProp || defaultTimeSlots;
@@ -168,7 +173,8 @@ export default function App({
 
     const apiBase = apiEndpointProp || window.LEXSchedulerConfig?.apiEndpoint || 'https://scheduler-mu-three.vercel.app/api/lex-booking';
     const base = apiBase.replace('/api/lex-booking', '');
-    fetch(`${base}/api/availability?issue=${formData.issue}`)
+    const brandQS = brand ? `&brand=${encodeURIComponent(brand)}` : '';
+    fetch(`${base}/api/availability?issue=${formData.issue}${brandQS}`)
       .then(r => r.json())
       .then(data => setAvailableSlots(data.slots || []))
       .catch(() => setSlotsError(true))
@@ -212,7 +218,7 @@ export default function App({
       const response = await fetch(endpoint, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ phone: memberPhone }),
+        body:    JSON.stringify({ phone: memberPhone, brand }),
       });
 
       const data = await response.json();
@@ -271,7 +277,7 @@ export default function App({
       }
 
     } catch (err) {
-      setVerifyError('Unable to verify membership. Please try again or call (972) 466-1917.');
+      setVerifyError(`Unable to verify membership. Please try again or call ${phone}.`);
     } finally {
       setVerifyLoading(false);
     }
@@ -324,6 +330,7 @@ export default function App({
       const apiEndpoint = apiEndpointProp || window.LEXSchedulerConfig?.apiEndpoint || 'https://scheduler-mu-three.vercel.app/api/lex-booking';
 
       const payload = {
+        brand,
         serviceType:   formData.serviceType,
         issue:         formData.issue,
         issueDetails:  formData.issueDetails,
@@ -361,7 +368,7 @@ export default function App({
 
     } catch (err) {
       console.error('[Scheduler] Submit error:', err);
-      setSubmitError(err.message || 'Something went wrong. Please call us at (972) 466-1917.');
+      setSubmitError(err.message || `Something went wrong. Please call us at ${phone}.`);
     } finally {
       setIsSubmitting(false);
     }
@@ -377,7 +384,6 @@ export default function App({
   if (!isOpen) return null;
 
   const hdrColor = headerColor || '#133865';
-  const phone = phoneNumber || '(972) 466-1917';
   const tag = tagline || 'The Gold Standard of White Glove Service';
 
   return (
@@ -500,8 +506,8 @@ export default function App({
               </div>
 
               <div className="lex-not-member-actions">
-                <a href="tel:9724661917" className="lex-btn-secondary" style={{ textAlign: 'center', display: 'block', textDecoration: 'none' }}>
-                  Call (972) 466-1917 if this is a mistake
+                <a href={telHref} className="lex-btn-secondary" style={{ textAlign: 'center', display: 'block', textDecoration: 'none' }}>
+                  Call {phone} if this is a mistake
                 </a>
                 <button className="lex-btn-primary" onClick={handleContinueAsNonMember}>
                   Continue Booking Anyway
@@ -696,11 +702,11 @@ export default function App({
                     </p>
                   ) : slotsError ? (
                     <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#991b1b', fontSize: '14px', padding: '12px 0' }}>
-                      Unable to load availability. Please call us at (972) 466-1917.
+                      Unable to load availability. Please call us at {phone}.
                     </p>
                   ) : availableSlots.length === 0 ? (
                     <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#64748b', fontSize: '14px', padding: '12px 0' }}>
-                      No available dates found in the next 14 days. Please call (972) 466-1917.
+                      No available dates found in the next 14 days. Please call {phone}.
                     </p>
                   ) : (
                     availableSlots.map(slot => {
@@ -817,7 +823,7 @@ export default function App({
               )}
 
               <div className="lex-emergency-note">
-                <strong>Emergency?</strong> Call us now at <a href="tel:9724661917">{phone}</a>
+                <strong>Emergency?</strong> Call us now at <a href={telHref}>{phone}</a>
               </div>
             </div>
           )}
@@ -827,7 +833,7 @@ export default function App({
         {/* Footer */}
         <div className="lex-scheduler-footer">
           <p>{tag}</p>
-          <p>Need immediate help? <a href="tel:9724661917">{phone}</a></p>
+          <p>Need immediate help? <a href={telHref}>{phone}</a></p>
         </div>
 
       </div>

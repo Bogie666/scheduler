@@ -2,6 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import SchedulerWidget from './SchedulerWidget';
 import './SchedulerWidget.css';
+import { getBrandPreset, DEFAULT_BRAND } from './brands';
 
 // Helper function to convert hex to rgba
 function hexToRgba(hex, alpha) {
@@ -23,6 +24,12 @@ function adjustColor(hex, percent) {
 
 // Widget initialization function
 function initLEXScheduler(config = {}) {
+  // Merge brand preset defaults under the caller's explicit config, so
+  // `brand: 'lyons'` picks up Lyons branding while any value passed
+  // directly still wins. `brand` is also forwarded to the backend.
+  const brand = config.brand || DEFAULT_BRAND;
+  const merged = { ...getBrandPreset(brand), ...config };
+
   const {
     buttonSelector = null,       // Optional: CSS selector for existing button
     autoButton = true,           // Create floating button if no selector provided
@@ -31,14 +38,15 @@ function initLEXScheduler(config = {}) {
     position = 'bottom-right',   // bottom-right, bottom-left
     baseUrl = 'https://scheduler-mu-three.vercel.app', // CDN base URL for assets
     // Customization options
-    logoUrl = null,              // Custom logo URL (defaults to LEX logo)
+    logoUrl = null,              // Custom logo URL (defaults to brand logo)
     headerColor = '#133865',     // Header background color
     buttonColor = '#0A5C8C',     // Floating button color
     buttonOffsetX = 24,          // Horizontal offset from edge (px)
     buttonOffsetY = 24,          // Vertical offset from edge (px)
     tagline = 'The Gold Standard of White Glove Service',  // Footer tagline
     phoneNumber = '(972) 466-1917',  // Support phone number
-  } = config;
+    headerSubtitle,              // Header subtitle (from brand preset)
+  } = merged;
 
   let container = null;
   let root = null;
@@ -62,10 +70,12 @@ function initLEXScheduler(config = {}) {
     root.render(
       <SchedulerWidget
         onClose={closeScheduler}
+        brand={brand}
         apiEndpoint={apiEndpoint}
         baseUrl={baseUrl}
         logoUrl={logoUrl}
         headerColor={headerColor}
+        headerSubtitle={headerSubtitle}
         tagline={tagline}
         phoneNumber={phoneNumber}
       />

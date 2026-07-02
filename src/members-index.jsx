@@ -65,6 +65,7 @@ function adjustColor(hex, percent) {
 
 function initLEXMembersScheduler(config = {}) {
   const {
+    brand = 'lex-etx',
     buttonSelector = null,
     autoButton = true,
     buttonText = 'Schedule Member Service',
@@ -106,6 +107,7 @@ function initLEXMembersScheduler(config = {}) {
     root.render(
       <SchedulerWidget
         onClose={closeScheduler}
+        brand={brand}
         apiEndpoint={apiEndpoint}
         baseUrl={baseUrl}
         logoUrl={logoUrl}
