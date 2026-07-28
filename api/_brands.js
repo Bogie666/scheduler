@@ -86,7 +86,7 @@ const BRANDS = {
     key: 'lex',
     name: 'LEX',
     phone: '(972) 466-1917',
-    websiteCampaignId: 46472179,   // Lex Website
+    websiteCampaignId: 434864898,  // Online Booking
     referralCampaignId: 421949222, // LexPerks Referral
     units: {
       'hvac-service':      6534,       // LEX Service
