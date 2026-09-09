@@ -94,17 +94,48 @@ async function createLocation(token, customerId, { firstName, lastName, address,
 }
 
 // ── Job ────────────────────────────────────────────────────────────
-async function createJob(token, { customerId, locationId, businessUnitId, jobTypeId, summary, start, end, campaignId }) {
+async function createJob(token, { customerId, locationId, businessUnitId, jobTypeId, summary, body, start, end, campaignId }) {
   const { data } = await axios.post(
     `${ST_API_BASE}/jpm/v2/tenant/${TENANT_ID}/jobs`,
     {
       customerId, locationId, businessUnitId, jobTypeId,
-      priority: 'Normal', summary, body: summary, campaignId,
+      priority: 'Normal', summary, body: body || summary, campaignId,
       appointments: [{ start, end, arrivalWindowStart: start, arrivalWindowEnd: end }],
     },
     { headers: stHeaders(token) }
   );
   return data;
+}
+
+/**
+ * Marketing attribution → a readable block appended to the job's body.
+ *
+ * The Google Ads click ID (gclid / gbraid / wbraid) is the piece that
+ * matters: pulling it back out of ServiceTitan alongside the job's sold
+ * revenue is what powers offline conversion import, so Google Ads can
+ * optimize toward jobs that actually close instead of raw form fills.
+ */
+function formatAttribution(attribution) {
+  if (!attribution || typeof attribution !== 'object') return '';
+  const fields = [
+    ['gclid',        'GCLID'],
+    ['gbraid',       'GBRAID'],
+    ['wbraid',       'WBRAID'],
+    ['msclkid',      'MSCLKID'],
+    ['utm_source',   'Source'],
+    ['utm_medium',   'Medium'],
+    ['utm_campaign', 'Campaign'],
+    ['utm_term',     'Term'],
+    ['utm_content',  'Content'],
+    ['ga_client_id', 'GA Client ID'],
+    ['landing_page', 'Landing Page'],
+    ['referrer',     'Referrer'],
+  ];
+  const lines = fields
+    .filter(([key]) => typeof attribution[key] === 'string' && attribution[key].trim())
+    .map(([key, label]) => `${label}: ${String(attribution[key]).trim().slice(0, 500)}`);
+
+  return lines.length ? `\n\n--- Marketing Attribution ---\n${lines.join('\n')}` : '';
 }
 
 async function patchJobReferralCode(token, jobId, referralCode) {
@@ -130,7 +161,7 @@ function createBookingHandler(brandKey) {
     const {
       issue, issueDetails, firstName, lastName, phone, email,
       address, city, zip, preferredDate, preferredTime,
-      windowStart, windowEnd, referralCode,
+      windowStart, windowEnd, referralCode, attribution,
       customerId: preVerifiedCustomerId, locationId: preVerifiedLocationId,
     } = req.body || {};
 
@@ -160,6 +191,10 @@ function createBookingHandler(brandKey) {
       if (issueDetails) summary += ` | ${issueDetails}`;
       summary += ` | Preferred: ${preferredDate} ${timeLabel}`;
       if (referralCode && brand.referralCampaignId) summary += ` | *** $50 Off $350+ ***`;
+
+      // Dispatchers see a clean summary; the attribution block lives on the
+      // job body so it's queryable later without cluttering the board.
+      const jobBody = summary + formatAttribution(attribution);
 
       // Campaign: brand referral campaign if code present and brand supports it, else brand website
       const jobCampaignId = (referralCode && brand.referralCampaignId)
@@ -217,7 +252,7 @@ function createBookingHandler(brandKey) {
       try {
         job = await createJob(token, {
           customerId: customer.id, locationId: location.id,
-          businessUnitId, jobTypeId, summary, start: jobStart, end: jobEnd,
+          businessUnitId, jobTypeId, summary, body: jobBody, start: jobStart, end: jobEnd,
           campaignId: jobCampaignId,
         });
         console.log(`[${brand.name} Booking] Created job ${job.id} (BU ${businessUnitId}) for ${firstName} ${lastName} — ${label}`);
