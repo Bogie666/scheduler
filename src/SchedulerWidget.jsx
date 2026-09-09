@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { captureAttribution, attributionPayload, pushEvent, trackConversion } from './tracking';
 
 const defaultServices = {
   cooling: {
@@ -102,6 +103,16 @@ export default function App({
     } catch (e) {}
   }, []);
 
+  // ── GTM dataLayer event (picked up by the host page's GTM container) ──
+  const track = useCallback((event, params = {}) => {
+    pushEvent(event, {
+      scheduler_step:   params.scheduler_step,
+      service_type:     params.service_type,
+      issue:            params.issue,
+      ...params,
+    });
+  }, []);
+
   const [isOpen,        setIsOpen]        = useState(true);
   const [step,          setStep]          = useState(1);
   const [isSubmitting,  setIsSubmitting]  = useState(false);
@@ -157,6 +168,10 @@ export default function App({
       }
     } catch (e) {}
     beaconFunnel('scheduler_opened');
+    // Remember the ad click that brought them here, then tell GTM the
+    // scheduler was opened (this is the top of the booking funnel).
+    captureAttribution();
+    track('scheduler_open', { scheduler_step: 1 });
   }, []);
 
   // ── Fetch live availability when reaching Step 4 ────────────
@@ -186,6 +201,18 @@ export default function App({
       contentRef.current.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, [step]);
+
+  // Each step change is a virtual page view for funnel/drop-off reporting.
+  useEffect(() => {
+    if (verifyPhase !== 'done') return;
+    const names = { 1: 'service', 2: 'details', 3: 'contact', 4: 'schedule', 5: 'confirmation' };
+    track('scheduler_step_view', {
+      scheduler_step:      step,
+      scheduler_step_name: names[step] || String(step),
+      service_type:        formData.serviceType || undefined,
+      issue:               formData.issue || undefined,
+    });
+  }, [step, verifyPhase]);
 
   // Scroll issue selection or actions into view after a service/issue pick
   const scrollToBottom = useCallback(() => {
@@ -320,6 +347,13 @@ export default function App({
     setIsSubmitting(true);
     setSubmitError('');
 
+    track('scheduler_booking_submitted', {
+      scheduler_step:   4,
+      service_type:     formData.serviceType,
+      issue:            formData.issue,
+      appointment_date: formData.preferredDate,
+    });
+
     try {
       const apiEndpoint = apiEndpointProp || window.LEXSchedulerConfig?.apiEndpoint || 'https://scheduler-mu-three.vercel.app/api/lex-booking';
 
@@ -339,6 +373,9 @@ export default function App({
         windowStart:   formData.windowStart || null,
         windowEnd:     formData.windowEnd || null,
         referralCode:  formData.referralCode.trim().toUpperCase() || null,
+        // Ad click IDs + UTMs so the job in ServiceTitan can be tied back
+        // to the Google Ads click (needed for offline conversion import).
+        attribution:   attributionPayload(),
         ...(isMemberVerified && verifiedCustomer && { customerId: verifiedCustomer.id }),
         ...(isMemberVerified && selectedLocation  && { locationId: selectedLocation.id }),
       };
@@ -356,11 +393,45 @@ export default function App({
       }
 
       beaconFunnel('booking_confirmed', { st_job_id: result.jobId || undefined });
+
+      // ── The conversion. This is the dataLayer event GTM listens for. ──
+      trackConversion({
+        job_id:           result.jobId,
+        scheduler_step:   5,
+        service_type:     formData.serviceType,
+        service_name:     services[formData.serviceType]?.name,
+        issue:            formData.issue,
+        appointment_date: formData.preferredDate,
+        is_member:        Boolean(isMemberVerified),
+        has_referral:     Boolean(formData.referralCode),
+        booking_zip:      formData.zip,
+        // Only forwarded to GTM when tracking.enhancedConversions is on.
+        user_data: {
+          email:       formData.email || undefined,
+          phone_number: formData.phone || undefined,
+          address: {
+            first_name:  formData.firstName,
+            last_name:   formData.lastName,
+            street:      formData.address,
+            city:        formData.city,
+            region:      'TX',
+            postal_code: formData.zip,
+            country:     'US',
+          },
+        },
+      });
+
       setSubmitSuccess(true);
       setStep(5);
 
     } catch (err) {
       console.error('[Scheduler] Submit error:', err);
+      track('scheduler_booking_error', {
+        scheduler_step: 4,
+        service_type:   formData.serviceType,
+        issue:          formData.issue,
+        error_message:  err.message || 'unknown',
+      });
       setSubmitError(err.message || 'Something went wrong. Please call us at (972) 466-1917.');
     } finally {
       setIsSubmitting(false);
@@ -370,6 +441,13 @@ export default function App({
   const selectedService = services[formData.serviceType];
 
   const handleClose = () => {
+    if (!submitSuccess) {
+      track('scheduler_abandoned', {
+        scheduler_step: step,
+        service_type:   formData.serviceType || undefined,
+        issue:          formData.issue || undefined,
+      });
+    }
     setIsOpen(false);
     if (onClose) onClose();
   };
@@ -529,7 +607,14 @@ export default function App({
                     onClick={() => {
                       updateField('serviceType', key);
                       // Auto-select the sole issue when a service has exactly one
-                      updateField('issue', service.issues.length === 1 ? service.issues[0].id : '');
+                      const soleIssue = service.issues.length === 1 ? service.issues[0].id : '';
+                      updateField('issue', soleIssue);
+                      track('scheduler_service_selected', {
+                        scheduler_step: 1,
+                        service_type:   key,
+                        service_name:   service.name,
+                        issue:          soleIssue || undefined,
+                      });
                       if (service.issues.length > 1) scrollToBottom();
                     }}
                     className={`lex-service-card ${formData.serviceType === key ? 'selected' : ''}`}
@@ -548,7 +633,16 @@ export default function App({
                     {selectedService.issues.map(issue => (
                       <button
                         key={issue.id}
-                        onClick={() => { updateField('issue', issue.id); scrollToBottom(); }}
+                        onClick={() => {
+                          updateField('issue', issue.id);
+                          track('scheduler_issue_selected', {
+                            scheduler_step: 1,
+                            service_type:   formData.serviceType,
+                            issue:          issue.id,
+                            issue_label:    issue.label,
+                          });
+                          scrollToBottom();
+                        }}
                         className={`lex-issue-btn ${formData.issue === issue.id ? 'selected' : ''}`}
                         style={{ '--service-color': selectedService.color }}
                       >
@@ -597,7 +691,18 @@ export default function App({
               </div>
               <div className="lex-step-actions">
                 <button className="lex-btn-secondary" onClick={prevStep}>Back</button>
-                <button className="lex-btn-primary" onClick={nextStep}>Continue</button>
+                <button
+                  className="lex-btn-primary"
+                  onClick={() => {
+                    track('scheduler_details_submitted', {
+                      scheduler_step: 2,
+                      service_type:   formData.serviceType,
+                      issue:          formData.issue,
+                      has_details:    Boolean(formData.issueDetails),
+                    });
+                    nextStep();
+                  }}
+                >Continue</button>
               </div>
             </div>
           )}
@@ -674,7 +779,17 @@ export default function App({
                 <button className="lex-btn-secondary" onClick={prevStep}>Back</button>
                 <button
                   className="lex-btn-primary"
-                  onClick={() => { beaconFunnel('customer_info_submitted'); nextStep(); }}
+                  onClick={() => {
+                    beaconFunnel('customer_info_submitted');
+                    track('scheduler_contact_submitted', {
+                      scheduler_step: 3,
+                      service_type:   formData.serviceType,
+                      issue:          formData.issue,
+                      zip:            formData.zip,
+                      has_referral:   Boolean(formData.referralCode),
+                    });
+                    nextStep();
+                  }}
                   disabled={!formData.firstName || !formData.lastName || !formData.phone || !formData.address || !formData.city || !formData.zip}
                 >
                   Continue
@@ -746,6 +861,13 @@ export default function App({
                               updateField('windowStart', w.start);
                               updateField('windowEnd', w.end);
                               beaconFunnel('slot_selected', { slot_ts: w.start });
+                              track('scheduler_slot_selected', {
+                                scheduler_step:   4,
+                                service_type:     formData.serviceType,
+                                issue:            formData.issue,
+                                appointment_date: formData.preferredDate,
+                                appointment_start: w.start,
+                              });
                             }}
                             className={`lex-time-btn ${selected ? 'selected' : ''}`}
                           >
