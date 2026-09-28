@@ -147,8 +147,160 @@ async function patchJobReferralCode(token, jobId, referralCode) {
 }
 
 /**
+ * Brand-aware booking core, transport-independent.
+ * ───────────────────────────────────────────────────────────────────
+ * Given a plain fields object + brandKey, this runs the full customer →
+ * location → job → referral flow against ServiceTitan and returns a
+ * structured result. Both the widget HTTP handlers (createBookingHandler)
+ * and the public MCP server (api/mcp.js) call this, so the ST integration
+ * lives in exactly ONE place and can never drift between surfaces.
+ *
+ * Returns: { statusCode, body } — body is the JSON payload to send back.
+ * Never throws; all failures are mapped to a statusCode + body.
+ *
+ * Options:
+ *   dryRun  — validate + resolve routing but do NOT create anything in ST.
+ *             Used by the MCP so an assistant can confirm a booking is
+ *             well-formed and routable before committing a real job.
+ */
+async function performBooking(fields, brandKey, opts = {}) {
+  const {
+    issue, issueDetails, firstName, lastName, phone, email,
+    address, city, zip, preferredDate, preferredTime,
+    windowStart, windowEnd, referralCode, attribution,
+    customerId: preVerifiedCustomerId, locationId: preVerifiedLocationId,
+  } = fields || {};
+
+  const resolved = resolveIssue(brandKey, issue);
+  if (resolved.error) {
+    return { statusCode: 400, body: { error: resolved.error } };
+  }
+  const { brand, jobTypeId, businessUnitId, label } = resolved;
+  const supportPhone = brand.phone;
+  const callMsg = `We had trouble submitting your request. Please call us at ${supportPhone}.`;
+
+  if (!firstName || !lastName || !phone || !address || !city || !zip) {
+    return { statusCode: 400, body: { error: 'Missing required fields',
+      required: ['firstName', 'lastName', 'phone', 'address', 'city', 'zip'] } };
+  }
+  if (!preferredDate) {
+    return { statusCode: 400, body: { error: 'Missing required field: preferredDate (YYYY-MM-DD)' } };
+  }
+
+  // ── Summary ──
+  const timeLabel = preferredTime === 'morning' ? '8am-12pm'
+                  : preferredTime === 'afternoon' ? '12pm-5pm'
+                  : 'First Available';
+  let summary = label;
+  if (issueDetails) summary += ` | ${issueDetails}`;
+  summary += ` | Preferred: ${preferredDate} ${timeLabel}`;
+  if (referralCode && brand.referralCampaignId) summary += ` | *** $50 Off $350+ ***`;
+
+  const jobBody = summary + formatAttribution(attribution);
+  const jobCampaignId = (referralCode && brand.referralCampaignId)
+    ? brand.referralCampaignId
+    : brand.websiteCampaignId;
+
+  // ── Time window ──
+  let jobStart, jobEnd;
+  if (windowStart && windowEnd) {
+    jobStart = windowStart; jobEnd = windowEnd;
+  } else {
+    const timeWindows = {
+      morning:           { start: '08:00:00', end: '12:00:00' },
+      afternoon:         { start: '12:00:00', end: '17:00:00' },
+      'first-available': { start: '08:00:00', end: '17:00:00' },
+    };
+    const tw = timeWindows[preferredTime] || timeWindows['first-available'];
+    const month = parseInt(preferredDate.split('-')[1], 10);
+    const ctOffset = (month >= 3 && month <= 10) ? '-05:00' : '-06:00';
+    jobStart = `${preferredDate}T${tw.start}${ctOffset}`;
+    jobEnd   = `${preferredDate}T${tw.end}${ctOffset}`;
+  }
+
+  // ── dryRun: resolved + validated, but nothing written to ST ──
+  if (opts.dryRun) {
+    return { statusCode: 200, body: {
+      success: true, dryRun: true, brand: brand.key,
+      wouldCreate: { businessUnitId, jobTypeId, label, summary,
+        start: jobStart, end: jobEnd, campaignId: jobCampaignId },
+      message: 'Validation only — no job was created in ServiceTitan.',
+    } };
+  }
+
+  try {
+    const token = await getAccessToken();
+    const cleanPhone = phone.replace(/\D/g, '');
+
+    // ── 1. Customer ──
+    let customer;
+    if (preVerifiedCustomerId) {
+      customer = { id: preVerifiedCustomerId };
+    } else {
+      try {
+        customer = await findCustomerByPhone(token, cleanPhone);
+        if (!customer) customer = await createCustomer(token, { firstName, lastName, phone: cleanPhone, email });
+      } catch (err) {
+        console.error(`[${brand.name} Booking] Customer step failed:`, err.response?.data || err.message);
+        return { statusCode: 500, body: { error: 'customer_failed', step: 'customer', message: callMsg } };
+      }
+    }
+
+    // ── 2. Location ──
+    let location;
+    if (preVerifiedLocationId) {
+      location = { id: preVerifiedLocationId };
+    } else {
+      try {
+        const existing = await getCustomerLocations(token, customer.id);
+        location = findMatchingLocation(existing, address, zip);
+        if (!location) location = await createLocation(token, customer.id, { firstName, lastName, address, city, zip });
+      } catch (err) {
+        console.error(`[${brand.name} Booking] Location step failed:`, err.response?.data || err.message);
+        return { statusCode: 500, body: { error: 'location_failed', step: 'location', message: callMsg } };
+      }
+    }
+
+    // ── 3. Job ──
+    let job;
+    try {
+      job = await createJob(token, {
+        customerId: customer.id, locationId: location.id,
+        businessUnitId, jobTypeId, summary, body: jobBody, start: jobStart, end: jobEnd,
+        campaignId: jobCampaignId,
+      });
+      console.log(`[${brand.name} Booking] Created job ${job.id} (BU ${businessUnitId}) for ${firstName} ${lastName} — ${label}`);
+    } catch (err) {
+      console.error(`[${brand.name} Booking] Job creation failed:`, err.response?.data || err.message);
+      return { statusCode: 500, body: { error: 'job_failed', step: 'job', message: callMsg } };
+    }
+
+    // ── 4. Referral code ──
+    if (referralCode && brand.referralCampaignId) {
+      try {
+        await patchJobReferralCode(token, job.id, referralCode.trim().toUpperCase());
+      } catch (patchErr) {
+        console.error(`[${brand.name} Booking] Referral patch failed on job ${job.id}:`, patchErr.response?.data || patchErr.message);
+      }
+    }
+
+    return { statusCode: 200, body: {
+      success: true, brand: brand.key, jobId: job.id,
+      customerId: customer.id, locationId: location.id, message: 'Job created successfully',
+    } };
+
+  } catch (err) {
+    console.error(`[${brand.name} Booking] Error:`, err.response?.data || err.message);
+    return { statusCode: 500, body: { error: 'booking_failed', step: 'auth_or_unknown', message: callMsg } };
+  }
+}
+
+/**
  * Brand-aware Vercel/Express handler factory.
  * Usage:  module.exports = createBookingHandler('lyons');
+ *
+ * Thin transport wrapper around performBooking() — the widget POST
+ * contract (status codes + JSON bodies) is preserved exactly.
  */
 function createBookingHandler(brandKey) {
   return async function handler(req, res) {
@@ -158,128 +310,9 @@ function createBookingHandler(brandKey) {
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-    const {
-      issue, issueDetails, firstName, lastName, phone, email,
-      address, city, zip, preferredDate, preferredTime,
-      windowStart, windowEnd, referralCode, attribution,
-      customerId: preVerifiedCustomerId, locationId: preVerifiedLocationId,
-    } = req.body || {};
-
-    // Resolve brand + routing first so we have the right support phone in errors
-    const resolved = resolveIssue(brandKey, issue);
-    if (resolved.error) {
-      return res.status(400).json({ error: resolved.error });
-    }
-    const { brand, jobTypeId, businessUnitId, label } = resolved;
-    const supportPhone = brand.phone;
-    const callMsg = `We had trouble submitting your request. Please call us at ${supportPhone}.`;
-
-    if (!firstName || !lastName || !phone || !address || !city || !zip) {
-      return res.status(400).json({ error: 'Missing required fields',
-        required: ['firstName', 'lastName', 'phone', 'address', 'city', 'zip'] });
-    }
-
-    try {
-      const token = await getAccessToken();
-      const cleanPhone = phone.replace(/\D/g, '');
-
-      // ── Summary ──
-      const timeLabel = preferredTime === 'morning' ? '8am-12pm'
-                      : preferredTime === 'afternoon' ? '12pm-5pm'
-                      : 'First Available';
-      let summary = label;
-      if (issueDetails) summary += ` | ${issueDetails}`;
-      summary += ` | Preferred: ${preferredDate} ${timeLabel}`;
-      if (referralCode && brand.referralCampaignId) summary += ` | *** $50 Off $350+ ***`;
-
-      // Dispatchers see a clean summary; the attribution block lives on the
-      // job body so it's queryable later without cluttering the board.
-      const jobBody = summary + formatAttribution(attribution);
-
-      // Campaign: brand referral campaign if code present and brand supports it, else brand website
-      const jobCampaignId = (referralCode && brand.referralCampaignId)
-        ? brand.referralCampaignId
-        : brand.websiteCampaignId;
-
-      // ── Time window ──
-      let jobStart, jobEnd;
-      if (windowStart && windowEnd) {
-        jobStart = windowStart; jobEnd = windowEnd;
-      } else {
-        const timeWindows = {
-          morning:           { start: '08:00:00', end: '12:00:00' },
-          afternoon:         { start: '12:00:00', end: '17:00:00' },
-          'first-available': { start: '08:00:00', end: '17:00:00' },
-        };
-        const tw = timeWindows[preferredTime] || timeWindows['first-available'];
-        const month = parseInt(preferredDate.split('-')[1], 10);
-        const ctOffset = (month >= 3 && month <= 10) ? '-05:00' : '-06:00';
-        jobStart = `${preferredDate}T${tw.start}${ctOffset}`;
-        jobEnd   = `${preferredDate}T${tw.end}${ctOffset}`;
-      }
-
-      // ── 1. Customer ──
-      let customer;
-      if (preVerifiedCustomerId) {
-        customer = { id: preVerifiedCustomerId };
-      } else {
-        try {
-          customer = await findCustomerByPhone(token, cleanPhone);
-          if (!customer) customer = await createCustomer(token, { firstName, lastName, phone: cleanPhone, email });
-        } catch (err) {
-          console.error(`[${brand.name} Booking] Customer step failed:`, err.response?.data || err.message);
-          return res.status(500).json({ error: 'customer_failed', step: 'customer', message: callMsg });
-        }
-      }
-
-      // ── 2. Location ──
-      let location;
-      if (preVerifiedLocationId) {
-        location = { id: preVerifiedLocationId };
-      } else {
-        try {
-          const existing = await getCustomerLocations(token, customer.id);
-          location = findMatchingLocation(existing, address, zip);
-          if (!location) location = await createLocation(token, customer.id, { firstName, lastName, address, city, zip });
-        } catch (err) {
-          console.error(`[${brand.name} Booking] Location step failed:`, err.response?.data || err.message);
-          return res.status(500).json({ error: 'location_failed', step: 'location', message: callMsg });
-        }
-      }
-
-      // ── 3. Job ──
-      let job;
-      try {
-        job = await createJob(token, {
-          customerId: customer.id, locationId: location.id,
-          businessUnitId, jobTypeId, summary, body: jobBody, start: jobStart, end: jobEnd,
-          campaignId: jobCampaignId,
-        });
-        console.log(`[${brand.name} Booking] Created job ${job.id} (BU ${businessUnitId}) for ${firstName} ${lastName} — ${label}`);
-      } catch (err) {
-        console.error(`[${brand.name} Booking] Job creation failed:`, err.response?.data || err.message);
-        return res.status(500).json({ error: 'job_failed', step: 'job', message: callMsg });
-      }
-
-      // ── 4. Referral code ──
-      if (referralCode && brand.referralCampaignId) {
-        try {
-          await patchJobReferralCode(token, job.id, referralCode.trim().toUpperCase());
-        } catch (patchErr) {
-          console.error(`[${brand.name} Booking] Referral patch failed on job ${job.id}:`, patchErr.response?.data || patchErr.message);
-        }
-      }
-
-      return res.status(200).json({
-        success: true, brand: brand.key, jobId: job.id,
-        customerId: customer.id, locationId: location.id, message: 'Job created successfully',
-      });
-
-    } catch (err) {
-      console.error(`[${brand.name} Booking] Error:`, err.response?.data || err.message);
-      return res.status(500).json({ error: 'booking_failed', step: 'auth_or_unknown', message: callMsg });
-    }
+    const { statusCode, body } = await performBooking(req.body || {}, brandKey);
+    return res.status(statusCode).json(body);
   };
 }
 
-module.exports = { createBookingHandler, getAccessToken, TENANT_ID };
+module.exports = { createBookingHandler, performBooking, getAccessToken, TENANT_ID };

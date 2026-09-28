@@ -5,3 +5,5 @@ dist/
 *.Zone.Identifier
 .vercel
 .env*
+
+mcp_local_test.js
